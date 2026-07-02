@@ -20,11 +20,15 @@ Pour chaque rencontre terminée, on regarde qui mène sur trois indicateurs — 
 
 ## 🗂️ Les données (réelles, tournoi en cours)
 
-Les données proviennent, **par ordre de priorité** :
+L'app essaie plusieurs sources **dans cet ordre**, et bascule automatiquement :
 
-1. **[API-Football](https://www.api-football.com/)** *(source principale)* — plan gratuit, couvre la *FIFA World Cup 2026* (ligue `id = 1`, saison `2026`). On y lit les *fixtures*, scores et l'endpoint *statistics* (possession, tirs, tirs cadrés, passes, corners, cartons) pour chaque match **terminé**.
-2. **Scraping respectueux** *(repli, optionnel)* — les pages *Match Centre* de [thestatszone.com/fwc26](https://www.thestatszone.com/fwc26/matches/results) fournissent des stats détaillées une fois le match fini. À n'utiliser **que** si le quota API est épuisé et **dans le respect des CGU du site** (vérifier `robots.txt`, limiter la fréquence).
-3. **Saisie manuelle** *(dernier recours)* — [`data/matches_2026_manual.csv`](data/matches_2026_manual.csv) : scores officiels FIFA + stats disponibles publiquement, saisis à la main, avec la source documentée dans la colonne `source`.
+1. **[API-Football](https://www.api-football.com/)** *(si accessible)* — ligue *FIFA World Cup* (`id = 1`), saison `2026` : *fixtures*, scores et endpoint *statistics* (possession, tirs, tirs cadrés, passes, corners).
+   > ⚠️ **Limite connue du plan gratuit** : il ne donne accès qu'aux **saisons 2022 à 2024**. Une requête sur 2026 renvoie `"Free plans do not have access to this season"`. Le plan gratuit ne permet donc **pas** de suivre la Coupe du Monde 2026 en direct — il faut un plan payant. Faute de quoi, l'app passe à la source suivante.
+2. **Scraping de [The Stats Zone](https://www.thestatszone.com/fwc26/matches/results)** *(source active par défaut)* — les pages publiques *Match Centre* FIFA World Cup 2026 fournissent, pour chaque match terminé, le score et les stats détaillées (possession, tirs, tirs cadrés, passes, corners). C'est la source qui fait tourner l'app **sans aucune clé**.
+   > ✅ **Respect des CGU** : `robots.txt` autorise les pages `/fwc26/` ; le scraper utilise un *User-Agent* identifiable, un délai entre requêtes et un cache disque (les stats d'un match terminé ne changent plus, on ne re-télécharge pas).
+3. **Saisie manuelle** *(dernier recours)* — [`data/matches_2026_manual.csv`](data/matches_2026_manual.csv) : scores officiels FIFA saisis à la main, source documentée dans la colonne `source`.
+
+Les matchs collectés sont **accumulés** dans [`data/matches_2026.csv`](data/matches_2026.csv) : l'historique persiste même quand un match sort de la liste des « résultats récents ».
 
 > 🔒 **Transparence** — aucune donnée n'est inventée. Une statistique absente est affichée **« non disponible »**, jamais estimée. Chaque page rappelle la **source** et l'**heure de dernière mise à jour**.
 
@@ -51,9 +55,13 @@ Les données proviennent, **par ordre de priorité** :
 - Pandas (assemblage et analyse)
 - Plotly (visualisations)
 
-## 🔑 Obtenir une clé API gratuite (API-Football)
+## 🔑 Clé API-Football — *optionnelle*
 
-1. Créez un compte sur **https://www.api-football.com/** (plan **Free**, ~100 requêtes/jour).
+L'app **fonctionne sans clé** (elle utilise le scraping de The Stats Zone). La clé n'a d'intérêt que si vous disposez d'un **plan payant** API-Football couvrant la saison 2026 — le plan gratuit ne la couvre pas (voir plus haut).
+
+Si vous avez une clé :
+
+1. Créez un compte sur **https://www.api-football.com/**.
 2. Dans le **Dashboard**, ouvrez l'onglet **« API Keys »** (ou *My Access*) et copiez votre clé.
 3. En local, créez le fichier `.streamlit/secrets.toml` à partir du modèle fourni :
 
@@ -71,7 +79,7 @@ Les données proviennent, **par ordre de priorité** :
 
    Alternative sans Streamlit (scripts) : variable d'environnement `API_FOOTBALL_KEY`.
 
-Sans clé configurée, l'app fonctionne quand même : elle bascule sur le CSV de secours et l'indique clairement.
+Sans clé (cas par défaut), l'app scrappe The Stats Zone et l'indique clairement dans le bandeau.
 
 ## 🚀 Lancer l'app en local
 
@@ -79,19 +87,19 @@ Sans clé configurée, l'app fonctionne quand même : elle bascule sur le CSV de
 git clone https://github.com/BadreddineEK/worldcup-2026-stats-vs-winner
 cd worldcup-2026-stats-vs-winner
 pip install -r requirements.txt
-# (optionnel mais recommandé) configurer la clé API — voir ci-dessus
 streamlit run app.py
 ```
 
-L'app s'ouvre sur http://localhost:8501.
+L'app s'ouvre sur http://localhost:8501 — **aucune clé requise**.
 
 ## 🔄 Régénérer le dataset à la main
 
-Le pipeline se reconstruit tout seul à chaque exécution (cache TTL de 3 h, adapté à un tournoi en cours). Pour forcer une reconstruction depuis la ligne de commande :
+Le pipeline se reconstruit tout seul à chaque exécution (cache TTL adapté à un tournoi en cours). Pour forcer une reconstruction depuis la ligne de commande :
 
 ```bash
-python -m src.data_build      # écrit data/matches_2026.csv
-python -m src.data_fetch      # test rapide de connexion à l'API
+python -m src.data_build         # écrit/complète data/matches_2026.csv
+python -m src.scrape_statszone   # test rapide du scraper The Stats Zone
+python -m src.data_fetch         # test rapide de l'API (si plan payant)
 ```
 
 ## 📁 Structure du projet
@@ -103,13 +111,15 @@ python -m src.data_fetch      # test rapide de connexion à l'API
 │   ├── 2_Surprises_du_Tournoi.py   # Quand le résultat défie les stats
 │   └── 3_Bilan_Live.py             # Derniers résultats, MAJ à chaque lancement
 ├── src/
-│   ├── data_fetch.py               # Appels API-Football + cache TTL
+│   ├── data_fetch.py               # Source #1 : API-Football + cache TTL
+│   ├── scrape_statszone.py         # Source #2 : scraping The Stats Zone (par défaut)
 │   ├── data_build.py               # Assemble matches_2026.csv (1 ligne / match joué)
 │   ├── analysis.py                 # Domination stats vs résultat, surprises
 │   └── ui.py                       # Briques Streamlit partagées (transparence)
 ├── data/
+│   ├── matches_2026.csv            # Historique accumulé des matchs joués
 │   ├── matches_2026_manual.csv     # Repli : scores officiels FIFA saisis à la main
-│   └── .cache/                     # Cache disque des réponses API (non versionné)
+│   └── .cache/                     # Cache disque des réponses (non versionné)
 ├── .streamlit/
 │   ├── config.toml                 # Thème
 │   └── secrets.toml.example        # Modèle de clé API (à copier, jamais commité)
@@ -123,19 +133,19 @@ python -m src.data_fetch      # test rapide de connexion à l'API
 1. Poussez le repo sur GitHub (voir plus bas).
 2. Allez sur **https://share.streamlit.io** → **New app**.
 3. Sélectionnez le repo `BadreddineEK/worldcup-2026-stats-vs-winner`, branche `main`, fichier principal `app.py`.
-4. Ouvrez **Advanced settings ▸ Secrets** et collez :
+4. *(Optionnel)* Si vous avez un plan payant API-Football, ouvrez **Advanced settings ▸ Secrets** et collez :
 
    ```toml
    API_FOOTBALL_KEY = "votre_cle_ici"
    ```
 
-   C'est l'équivalent Cloud de `.streamlit/secrets.toml` : la clé est lue via `st.secrets["API_FOOTBALL_KEY"]`, jamais écrite dans le code.
+   C'est l'équivalent Cloud de `.streamlit/secrets.toml` : la clé est lue via `st.secrets["API_FOOTBALL_KEY"]`, jamais écrite dans le code. Sans ce secret, l'app scrappe The Stats Zone.
 5. **Deploy**. À chaque `git push`, l'app se redéploie ; les données se rafraîchissent selon le cache TTL.
 
 ## 📄 Licence
 
 MIT — voir [LICENSE](LICENSE).
-Données de match : **API-Football** (© les fournisseurs respectifs) pour les rencontres terminées ; scores officiels **FIFA** pour le repli manuel. Respectez les CGU de chaque source avant toute réutilisation.
+Données de match : **The Stats Zone** (pages publiques FIFA World Cup 2026) et **API-Football** pour les rencontres terminées ; scores officiels **FIFA** pour le repli manuel. Respectez les CGU de chaque source avant toute réutilisation.
 
 ---
 

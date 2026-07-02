@@ -93,7 +93,8 @@ else:
     st.dataframe(show, use_container_width=True, hide_index=True)
 
 st.caption(
-    "Transparence — les statistiques proviennent d'API-Football pour les matchs "
-    "**terminés** uniquement. Toute donnée manquante est signalée "
+    "Transparence — les statistiques proviennent de sources publiques (API-Football "
+    "si le plan le permet, sinon scraping respectueux de The Stats Zone) pour les "
+    "matchs **terminés** uniquement. Toute donnée manquante est signalée "
     "« non disponible » et jamais estimée. Détails des sources dans le README."
 )

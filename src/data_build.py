@@ -23,6 +23,7 @@ from pathlib import Path
 import pandas as pd
 
 from .data_fetch import fetch_match_statistics, fetch_worldcup_2026_matches, get_api_key
+from .scrape_statszone import scrape_played_matches
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 OUTPUT_CSV = DATA_DIR / "matches_2026.csv"
@@ -67,6 +68,51 @@ def _row_from_match(match: dict, stats: dict) -> dict:
         "away_corners": away.get("corners"),
         "source": "API-Football",
     }
+
+
+def _rows_to_dataframe(rows: list[dict]) -> pd.DataFrame:
+    """Convertit une liste de dicts (API ou scraper) en table normalisée."""
+    df = pd.DataFrame(rows)
+    for col in COLUMNS:
+        if col not in df.columns:
+            df[col] = pd.NA
+    df = df[COLUMNS]
+    if not df.empty:
+        df = df.sort_values("date").reset_index(drop=True)
+    return df
+
+
+def build_from_scraper() -> pd.DataFrame:
+    """Source #2 : scraping The Stats Zone (quand l'API ne couvre pas 2026)."""
+    rows = scrape_played_matches(with_stats=True)
+    return _rows_to_dataframe(rows)
+
+
+def _merge_history(new_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Fusionne les nouveaux matchs avec le CSV déjà versionné (data/matches_2026.csv).
+    Accumule l'historique : un match déjà connu est mis à jour, les anciens sont
+    conservés même s'ils sortent de la liste des « résultats récents » scrappée.
+    """
+    frames = []
+    if OUTPUT_CSV.exists():
+        try:
+            frames.append(pd.read_csv(OUTPUT_CSV))
+        except Exception:
+            pass
+    if not new_df.empty:
+        frames.append(new_df)
+    if not frames:
+        return new_df
+
+    merged = pd.concat(frames, ignore_index=True)
+    for col in COLUMNS:
+        if col not in merged.columns:
+            merged[col] = pd.NA
+    merged = merged[COLUMNS]
+    # dernière occurrence = donnée la plus fraîche pour un même match
+    merged = merged.drop_duplicates(subset="fixture_id", keep="last")
+    return merged.sort_values("date").reset_index(drop=True)
 
 
 def build_matches_dataframe() -> pd.DataFrame:
@@ -117,14 +163,28 @@ def load_matches(force_refresh: bool = False) -> tuple[pd.DataFrame, dict]:
     now = datetime.now(timezone.utc)
     has_key = get_api_key() is not None
 
+    # Source #1 : API-Football (si une clé est configurée ET couvre 2026)
     df = build_matches_dataframe() if has_key else pd.DataFrame(columns=COLUMNS)
     source = "API-Football"
 
+    # Source #2 : scraping The Stats Zone (le plan gratuit API ne couvre pas 2026)
+    if df.empty:
+        try:
+            df = build_from_scraper()
+        except Exception:
+            df = pd.DataFrame(columns=COLUMNS)
+        source = "TheStatsZone" if not df.empty else source
+
+    # Accumule l'historique déjà collecté (matchs sortis de la liste récente)
+    if not df.empty:
+        df = _merge_history(df)
+
+    # Source #3 : CSV saisi à la main (dernier recours)
     if df.empty:
         df = _load_manual_fallback()
         source = "CSV manuel (FIFA officiel)" if not df.empty else "aucune"
 
-    # Persiste le dernier état connu (utile pour inspection / debug)
+    # Persiste le dernier état connu (versionnable pour un déploiement rapide)
     try:
         DATA_DIR.mkdir(parents=True, exist_ok=True)
         if not df.empty:

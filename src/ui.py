@@ -68,10 +68,16 @@ def transparency_banner(meta: dict) -> None:
             clear_cache()
             st.rerun()
 
-    if not meta["has_api_key"] and meta["source"] != "API-Football":
+    if meta["source"] == "TheStatsZone":
         st.caption(
-            "ℹ️ Aucune clé API-Football détectée : lecture du CSV de secours. "
-            "Ajoutez votre clé dans `.streamlit/secrets.toml` pour des données live."
+            "ℹ️ Source : **The Stats Zone** (scraping respectueux des pages publiques "
+            "FIFA World Cup 2026). Le plan gratuit d'API-Football ne couvre pas la "
+            "saison 2026 — voir le README."
+        )
+    elif meta["source"] == "CSV manuel (FIFA officiel)":
+        st.caption(
+            "ℹ️ Source : **CSV saisi à la main** (scores officiels FIFA). "
+            "Ni l'API ni le scraping n'ont renvoyé de données."
         )
 
 
