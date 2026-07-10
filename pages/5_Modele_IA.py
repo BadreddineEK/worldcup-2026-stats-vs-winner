@@ -174,7 +174,7 @@ with tab1:
         title="Coefficient = impact d'un écart +1σ sur la probabilité de victoire",
         title_font_size=12,
     )
-    st.plotly_chart(fig_c1, use_container_width=True)
+    st.plotly_chart(fig_c1, width='stretch')
     insight_card(
         "💡 <b>Le résultat contre-intuitif :</b> les tirs cadrés (±2.2σ) prédisent 3× mieux la victoire "
         "que la possession (±0.4σ). Et les tirs <i>bruts</i> ont un coefficient négatif : "
@@ -201,7 +201,7 @@ with tab2:
         yaxis_title="Coefficient (logistic regression)",
         margin=dict(t=20, b=10),
     )
-    st.plotly_chart(fig_c2, use_container_width=True)
+    st.plotly_chart(fig_c2, width='stretch')
 
 st.divider()
 
@@ -237,7 +237,7 @@ fig_p.update_layout(
     yaxis_range=[0, 100],
     margin=dict(t=20, b=10),
 )
-st.plotly_chart(fig_p, use_container_width=True)
+st.plotly_chart(fig_p, width='stretch')
 st.caption(
     "Probabilité estimée par le modèle différentiel quand *seule* la possession varie "
     "(toutes les autres stats au niveau de l'adversaire = médiane). "

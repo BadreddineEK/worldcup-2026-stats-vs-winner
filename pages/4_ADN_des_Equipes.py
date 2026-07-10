@@ -99,7 +99,7 @@ fig.update_layout(
     margin=dict(t=30, b=20),
     legend_title_text="Profil",
 )
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width='stretch')
 
 # Insights auto-générés
 col1, col2, col3 = st.columns(3)
@@ -177,7 +177,7 @@ fig2.add_vline(x=med_acc, line_dash="dot", line_color="#555",
 fig2.add_hline(y=med_conv, line_dash="dot", line_color="#555",
                annotation_text=f"Médiane conversion ({med_conv:.0f}%)")
 fig2.update_layout(margin=dict(t=30, b=20), coloraxis_showscale=True)
-st.plotly_chart(fig2, use_container_width=True)
+st.plotly_chart(fig2, width='stretch')
 
 st.divider()
 
@@ -226,7 +226,7 @@ fig3.update_layout(
     margin=dict(t=40, b=40),
     showlegend=True,
 )
-st.plotly_chart(fig3, use_container_width=True)
+st.plotly_chart(fig3, width='stretch')
 
 # Métriques clés sous le radar
 def show_team_kpis(name: str, tp_df: pd.DataFrame) -> None:
