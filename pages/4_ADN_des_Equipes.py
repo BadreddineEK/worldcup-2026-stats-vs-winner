@@ -11,19 +11,21 @@ import streamlit as st
 import pandas as pd
 
 from src.team_analysis import build_team_profiles, radar_data, team_narrative
-from src.ui import get_data, transparency_banner
+from src.ui import GREEN, BLUE, get_data, insight_card, render_sidebar, transparency_banner
 
 st.set_page_config(page_title="ADN des Équipes", page_icon="🧬", layout="wide")
 
-st.title("🧬 ADN des équipes — qui domine ? qui gagne ?")
-st.markdown(
-    "Chaque équipe a un **style statistique** différent. "
-    "Certaines gagnent en dominant le ballon, d'autres en jouant sur le contre. "
-    "Les chiffres révèlent ces ADN mieux que n'importe quel commentaire."
-)
-
 df, meta = get_data()
-transparency_banner(meta)
+render_sidebar(meta)
+
+st.title("🧬 ADN des équipes")
+st.markdown(
+    "Chaque équipe a un **style statistique** unique. "
+    "Norway gagne à 80% avec seulement 53% de possession. "
+    "Spain contrôle le ballon (65%) mais Spain n’est pas invincible. "
+    "**Les chiffres révèlent l’ADN de chaque camp mieux qu’un commentateur.**"
+)
+transparency_banner(meta, compact=True)
 
 if meta["n_matches"] == 0:
     st.info("Pas encore de données. Revenez après les premiers matchs ⚽")

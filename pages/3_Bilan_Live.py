@@ -6,20 +6,19 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from src.analysis import agreement_summary
-from src.ui import clear_cache, get_data, na, transparency_banner
+from src.ui import clear_cache, get_data, insight_card, na, render_sidebar, transparency_banner
 
 st.set_page_config(page_title="Bilan live", page_icon="🔴", layout="wide")
 
-st.title("🔴 Bilan live du tournoi")
-
-col_a, col_b = st.columns([3, 1])
-with col_b:
-    if st.button("🔄 Forcer la mise à jour", use_container_width=True):
-        clear_cache()
-        st.rerun()
-
 df, meta = get_data()
-transparency_banner(meta)
+render_sidebar(meta)
+
+st.title("🔴 Bilan live")
+st.markdown(
+    "Le tournoi en temps réel. Tous les résultats, la progression par phase, "
+    "et l’évolution des grands indicateurs. **Actualisé à chaque ouverture.**"
+)
+transparency_banner(meta, compact=True)
 
 st.divider()
 
@@ -104,9 +103,6 @@ st.caption(
     "Chaque ligne = un match réellement terminé. Les stats manquantes sont "
     "laissées vides (« non disponible »), jamais estimées."
 )
-
-
-st.set_page_config(page_title="Bilan live", page_icon="🔴", layout="wide")
 
 st.title("🔴 Bilan live du tournoi")
 

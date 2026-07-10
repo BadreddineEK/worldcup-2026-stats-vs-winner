@@ -6,13 +6,19 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from src.analysis import find_surprises
-from src.ui import get_data, na, no_data_hint, transparency_banner
+from src.ui import get_data, insight_card, na, no_data_hint, render_sidebar, transparency_banner
 
 st.set_page_config(page_title="Surprises du tournoi", page_icon="🎲", layout="wide")
 
-st.title("🎲 Surprises du tournoi — le foot contre les chiffres")
 df, meta = get_data()
-transparency_banner(meta)
+render_sidebar(meta)
+
+st.title("🎲 Surprises du tournoi")
+st.markdown(
+    "Le football a cette qualité rare : les chiffres peuvent totalement se tromper. "
+    "Voici les matchs où l’équipe qui dominait statistiquement **n’a pas gagné**."
+)
+transparency_banner(meta, compact=True)
 
 if meta["n_matches"] == 0:
     no_data_hint()
@@ -136,9 +142,6 @@ else:
     show.columns = ["Date", "Phase", "Domicile", "Buts (D)",
                     "Buts (E)", "Extérieur", "Fin du match"]
     st.dataframe(show, use_container_width=True, hide_index=True)
-
-
-st.set_page_config(page_title="Surprises du tournoi", page_icon="🎲", layout="wide")
 
 st.title("🎲 Surprises du tournoi — le foot contre les chiffres")
 df, meta = get_data()

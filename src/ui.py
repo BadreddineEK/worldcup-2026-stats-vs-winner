@@ -2,9 +2,10 @@
 src/ui.py — Briques d'interface partagées par toutes les pages Streamlit.
 
 Centralise :
-  - le chargement des données mis en cache (TTL = tournoi en cours) ;
-  - la bannière de transparence (source + date de MAJ + nb de matchs) ;
-  - l'affichage "non disponible" pour les stats manquantes.
+  - le chargement des données (cache TTL 3 h) ;
+  - la sidebar du projet (contexte + navigation) ;
+  - la bannière de transparence légère ;
+  - helpers de mise en forme.
 """
 
 from __future__ import annotations
@@ -15,77 +16,150 @@ import streamlit as st
 from .analysis import annotate_matches
 from .data_build import load_matches
 
-# Cache Streamlit : évite de rappeler l'API à chaque interaction.
-# TTL court car le TOURNOI EST EN COURS → données rafraîchies régulièrement.
-CACHE_TTL = 3 * 60 * 60  # 3 heures
+CACHE_TTL = 3 * 60 * 60  # 3 h — tournoi en cours
+GREEN = "#00B140"
+RED   = "#e74c3c"
+BLUE  = "#3498db"
 
 
-@st.cache_data(ttl=CACHE_TTL, show_spinner="Récupération des matchs 2026…")
+# ─────────────────────────────────────────────────────────────
+# DONNÉES
+# ─────────────────────────────────────────────────────────────
+@st.cache_data(ttl=CACHE_TTL, show_spinner="Chargement des données…")
 def get_data():
-    """Renvoie (df_annoté, meta). Mis en cache pendant CACHE_TTL secondes."""
     df, meta = load_matches()
     return annotate_matches(df), meta
 
 
 def clear_cache():
-    """Force le rechargement (bouton 'Rafraîchir maintenant')."""
     get_data.clear()
 
 
+# ─────────────────────────────────────────────────────────────
+# MISE EN FORME
+# ─────────────────────────────────────────────────────────────
 def na(value) -> str:
-    """Formate une valeur, ou 'non disponible' si absente. Jamais inventée."""
-    if value is None or (isinstance(value, float) and pd.isna(value)) or pd.isna(value):
+    """Valeur ou 'non disponible'. Jamais inventée."""
+    if value is None:
         return "non disponible"
+    try:
+        if pd.isna(value):
+            return "non disponible"
+    except Exception:
+        pass
     if isinstance(value, float) and value.is_integer():
         return str(int(value))
     return str(value)
 
 
-def transparency_banner(meta: dict) -> None:
+def pct_color(v: float, threshold_good: float = 55, threshold_bad: float = 40) -> str:
+    if v >= threshold_good:
+        return GREEN
+    if v <= threshold_bad:
+        return RED
+    return "#f39c12"
+
+
+# ─────────────────────────────────────────────────────────────
+# SIDEBAR PARTAGÉE
+# ─────────────────────────────────────────────────────────────
+def render_sidebar(meta: dict | None = None) -> None:
     """
-    Bandeau de transparence affiché en tête de chaque page.
-    Rappelle la source, la fraîcheur et le périmètre réel de l'analyse.
+    Sidebar contextuelle affichée sur toutes les pages.
+    Rappelle l'objet du projet + les chiffres clés live.
+    """
+    with st.sidebar:
+        st.markdown("## ⚽ CDM 2026 Data Lab")
+        st.markdown(
+            "**97 matchs réels · 48 équipes**\n\n"
+            "Un Data Lab qui répond à une seule question, "
+            "sous toutes ses facettes :\n\n"
+            "*Les statistiques de match prédisent-elles vraiment le vainqueur ?*"
+        )
+        st.divider()
+        if meta and meta.get("n_matches"):
+            st.caption(f"🕒 Données au **{meta['last_updated_str']}**")
+            st.caption(f"📡 Source : **{meta.get('source', '—')}**")
+            if st.button("🔄 Rafraîchir les données", use_container_width=True):
+                clear_cache()
+                st.rerun()
+        st.divider()
+        st.markdown(
+            "**Navigation**\n"
+            "- 📊 Stats vs Résultats\n"
+            "- 🎲 Surprises du tournoi\n"
+            "- 🔴 Bilan live\n"
+            "- 🧬 ADN des équipes\n"
+            "- 🤖 Modèle IA"
+        )
+        st.divider()
+        st.caption(
+            "Données : [The Stats Zone](https://www.thestatszone.com/fwc26/)\n\n"
+            "Projet open-source : "
+            "[GitHub](https://github.com/BadreddineEK/worldcup-2026-stats-vs-winner)\n\n"
+            "*Badreddine EL KHAMLICHI*"
+        )
+
+
+# ─────────────────────────────────────────────────────────────
+# BANNIÈRE DE TRANSPARENCE (version compacte)
+# ─────────────────────────────────────────────────────────────
+def transparency_banner(meta: dict, compact: bool = False) -> None:
+    """
+    Rappelle la source, la fraîcheur et le périmètre de l'analyse.
+    compact=True : une seule ligne caption (pour les pages internes).
+    compact=False : bandeau st.info complet (pour la home).
     """
     n = meta["n_matches"]
     date_ref = meta["last_updated_str"]
 
-    cols = st.columns([3, 1])
-    with cols[0]:
+    if compact:
+        st.caption(
+            f"📊 **{n} matchs joués** au {date_ref} · "
+            f"Source : {meta['source']} · "
+            "L'analyse est bornée aux matchs **terminés** uniquement."
+        )
+        return
+
+    col_info, col_btn = st.columns([4, 1])
+    with col_info:
         if n == 0:
             st.warning(
-                f"**Aucun match exploitable pour l'instant.** "
-                f"Source visée : {meta['source']}. "
+                "Aucun match exploitable pour l'instant. "
                 f"Dernière vérification : {date_ref}."
             )
         else:
             st.info(
-                f"📊 **Basé sur {n} match(s) joué(s)** au {date_ref} · "
+                f"📊 Basé sur **{n} matchs joués** au {date_ref} · "
                 f"Source : **{meta['source']}** · "
-                f"L'analyse ne couvre donc PAS l'intégralité du tournoi (en cours)."
+                "Analyse limitée aux matchs **terminés**."
             )
-    with cols[1]:
+    with col_btn:
         if st.button("🔄 Rafraîchir", use_container_width=True):
             clear_cache()
             st.rerun()
 
-    if meta["source"] == "TheStatsZone":
-        st.caption(
-            "ℹ️ Source : **The Stats Zone** (scraping respectueux des pages publiques "
-            "FIFA World Cup 2026). Le plan gratuit d'API-Football ne couvre pas la "
-            "saison 2026 — voir le README."
-        )
-    elif meta["source"] == "CSV manuel (FIFA officiel)":
-        st.caption(
-            "ℹ️ Source : **CSV saisi à la main** (scores officiels FIFA). "
-            "Ni l'API ni le scraping n'ont renvoyé de données."
-        )
 
-
+# ─────────────────────────────────────────────────────────────
+# MESSAGE VIDE
+# ─────────────────────────────────────────────────────────────
 def no_data_hint() -> None:
-    """Message unifié quand il n'y a encore rien à analyser."""
     st.markdown(
-        "#### Pas encore de match exploitable\n"
-        "- Soit le tournoi n'a pas encore livré de match terminé avec statistiques,\n"
-        "- soit la clé API n'est pas configurée (voir le README).\n\n"
-        "Revenez après les premiers coups de sifflet finaux ⚽"
+        "#### Pas encore de données\n"
+        "Revenez après les premiers matchs terminés ⚽"
     )
+
+
+# ─────────────────────────────────────────────────────────────
+# HIGHLIGHT CARD (callout stylisé)
+# ─────────────────────────────────────────────────────────────
+def insight_card(text: str, color: str = GREEN) -> None:
+    """Affiche un encadré 'insight' coloré."""
+    st.markdown(
+        f"""<div style="border-left:4px solid {color};
+        padding:0.6rem 1rem; border-radius:0 6px 6px 0;
+        background:rgba(0,0,0,0.15); margin:0.5rem 0;">
+        {text}</div>""",
+        unsafe_allow_html=True,
+    )
+

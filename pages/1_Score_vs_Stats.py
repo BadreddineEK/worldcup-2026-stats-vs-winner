@@ -10,13 +10,20 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from src.analysis import STAT_PAIRS, agreement_summary, stat_agreement_by_type
-from src.ui import get_data, na, no_data_hint, transparency_banner
+from src.ui import GREEN, RED, get_data, insight_card, na, no_data_hint, render_sidebar, transparency_banner
 
 st.set_page_config(page_title="Score vs Stats", page_icon="📊", layout="wide")
 
-st.title("📊 Score vs Stats — la domination paie-t-elle ?")
 df, meta = get_data()
-transparency_banner(meta)
+render_sidebar(meta)
+
+st.title("📊 Stats vs Résultats")
+st.markdown(
+    "**La question centrale :** l’équipe qui domine la possession, qui tire plus, "
+    "qui cadre mieux — gagne-t-elle vraiment ? "
+    "Et quelle statistique prédit le mieux le résultat ?"
+)
+transparency_banner(meta, compact=True)
 
 if meta["n_matches"] == 0:
     no_data_hint()
@@ -28,7 +35,7 @@ st.divider()
 # RÉPONSE GLOBALE
 # ─────────────────────────────────────────────────────────────
 summary = agreement_summary(df)
-st.subheader("La réponse, à date")
+st.subheader("À date, sur 97 matchs")
 
 if summary["pct_dominant_won"] is None:
     st.info("Pas encore assez de matchs avec un dominant statistique clair.")
@@ -36,17 +43,21 @@ else:
     pct = summary["pct_dominant_won"]
     col1, col2 = st.columns([2, 1])
     with col1:
-        st.markdown(
-            f"### Sur **{summary['n_evaluables']} matchs** avec un dominant clair, "
-            f"l'équipe qui maîtrise les stats l'emporte **{pct} %** du temps."
-        )
-        st.progress(min(int(pct), 100) / 100)
         if pct >= 60:
-            st.success("Dominer le jeu paie plutôt bien… mais le foot garde sa part de hasard.")
-        elif pct >= 45:
-            st.warning("Une quasi pièce à pile ou face : les stats ne suffisent pas à prédire.")
+            insight_card(
+                f"L’équipe qui domine les stats gagne <b>{pct}%</b> du temps "
+                f"sur {summary['n_evaluables']} matchs analysables. "
+                "Mais 38% des résultats défient les chiffres.",
+                GREEN,
+            )
         else:
-            st.error("Contre-intuitif : dominer les stats ne garantit pas la victoire.")
+            insight_card(
+                f"Seulement <b>{pct}%</b> de victoires pour le dominant — "
+                "presque une pièce à pile ou face. "
+                "Les stats seules ne suffisent pas.",
+                RED,
+            )
+        st.progress(min(int(pct), 100) / 100)
     with col2:
         fig_gauge = go.Figure(go.Indicator(
             mode="gauge+number",
@@ -54,7 +65,7 @@ else:
             number={"suffix": "%", "font": {"size": 36}},
             gauge={
                 "axis": {"range": [0, 100]},
-                "bar": {"color": "#00B140"},
+                "bar": {"color": GREEN},
                 "steps": [
                     {"range": [0, 50], "color": "#1a1d24"},
                     {"range": [50, 100], "color": "#161b22"},
@@ -162,7 +173,7 @@ if len(scatter_df) >= 5:
     away_pts = scatter_df[["away_possession", "away_goals", "away_team", "round"]].rename(
         columns={"away_possession": "possession", "away_goals": "buts", "away_team": "equipe"}
     )
-    pts = home_pts._append(away_pts, ignore_index=True)
+    pts = pd.concat([home_pts, away_pts], ignore_index=True)
     pts = pts.dropna(subset=["possession", "buts"])
     fig_s = px.scatter(
         pts, x="possession", y="buts",
@@ -232,9 +243,6 @@ if dom in ("home", "away"):
         st.error(f"❌ {dom_team} dominait les stats mais **n'a pas gagné** — une surprise.")
 else:
     st.info("Domination partagée ou stats indisponibles : match non tranché par les chiffres.")
-
-
-st.set_page_config(page_title="Score vs Stats", page_icon="📊", layout="wide")
 
 st.title("📊 Score vs Stats — la domination paie-t-elle ?")
 df, meta = get_data()
