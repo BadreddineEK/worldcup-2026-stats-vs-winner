@@ -124,7 +124,7 @@ def _team_colors(is_winner, is_surprise):
         return "#f39c12", "rgba(243,156,18,0.12)"
     if is_winner:
         return "#00B140", "rgba(0,177,64,0.12)"
-    return "#6b7280", "rgba(22,27,34,0.5)"
+    return "#c9d1d9", "rgba(22,27,34,0.0)"  # texte blanc-gris sur fond transparent
 
 
 def _add_match(fig, x, y_center, team_home, score_home, team_away, score_away,
@@ -149,15 +149,15 @@ def _add_match(fig, x, y_center, team_home, score_home, team_away, score_away,
                       width=1.5 if (is_actual_winner or is_sim_surprise) else 0.8),
             layer="below",
         )
-        short  = (team[:13] + ".") if team and len(team) > 14 else (team or "TBD")
-        prefix = "T " if is_actual_winner else "S " if is_sim_surprise else ""
-        fig.add_annotation(x=x + 0.22, y=y_team, text=f"{prefix}{short}",
+        short  = (team[:14] + ".") if team and len(team) > 15 else (team or "TBD")
+        # Pas de prefix textuel — la couleur suffit comme indicateur
+        fig.add_annotation(x=x + 0.22, y=y_team, text=short,
                            xanchor="left", yanchor="middle",
                            font=dict(size=9.5, color=txt_col, family="Arial"), showarrow=False)
         sc = "?" if (is_upcoming or score is None or (isinstance(score, float) and score != score)) else f"<b>{int(score)}</b>"
         fig.add_annotation(x=x + BOX_W - 0.18, y=y_team, text=sc,
                            xanchor="right", yanchor="middle",
-                           font=dict(size=11, color="#e6edf3" if is_actual_winner else "#9ca3af"), showarrow=False)
+                           font=dict(size=11, color="#e6edf3"), showarrow=False)
 
     fig.add_shape(type="line", x0=x + 0.12, x1=x + BOX_W - 0.12,
                   y0=y_center, y1=y_center, line=dict(color="#374151", width=0.5))

@@ -202,18 +202,26 @@ if cluster_stats is not None:
 st.divider()
 
 # ─────────────────────────────────────────────────────────────
-# EVOLUTION STATISTIQUE (momentum)
+# EVOLUTION PAR PHASE (possession)
 # ─────────────────────────────────────────────────────────────
-st.subheader("Momentum : qui monte en puissance ?")
+st.subheader("Evolution de la possession par phase")
 st.markdown(
-    "Comment le taux de conversion evolue-t-il entre la phase de groupes "
-    "et les phases eliminatoires ? Une equipe qui monte en puissance est "
-    "plus dangereuse que ses stats globales ne le montrent."
+    "La possession reflète la manière dont une équipe joue. "
+    "Une ligne qui monte = l'équipe contrôle de plus en plus. "
+    "Les équipes avec des lignes stables = style constant."
 )
 
 _order_rounds = {
     "Group": 0, "Round of 32": 1, "Round of 16": 2,
     "Quarter-finals": 3, "Semi-finals": 4,
+}
+_phase_labels = {
+    0: "Groupes",
+    1: "R. de 32",
+    2: "Huitièmes",
+    3: "Quarts",
+    4: "Demi-finales",
+    5: "Finale",
 }
 
 teams_for_momentum = sorted(r16_winners) if r16_winners else []
@@ -221,72 +229,86 @@ if not teams_for_momentum:
     teams_for_momentum = sorted(tp.nlargest(8, "win_rate")["team"].tolist())
 
 selected_m = st.multiselect(
-    "Equipes a comparer",
+    "Équipes à comparer",
     options=sorted(tp["team"].tolist()),
     default=teams_for_momentum[:4] if len(teams_for_momentum) >= 4 else teams_for_momentum,
     key="momentum_sel",
 )
 
 if selected_m:
-    momentum_rows = []
+    # Collecter possession par equipe et par phase
+    poss_rows = []
     for _, r in df.iterrows():
-        for side in ["home", "away"]:
+        for side, other in [("home", "away"), ("away", "home")]:
             team = r[f"{side}_team"]
             if team not in selected_m:
                 continue
-            sot = r[f"{side}_shots_on_target"]
-            g = r[f"{side}_goals"]
-            rnd = r["round"]
+            poss = r.get(f"{side}_possession")
+            rnd  = r["round"]
             phase_sort = next((v for k, v in _order_rounds.items() if k.lower() in rnd.lower()), 9)
-            if pd.notna(sot) and sot > 0 and pd.notna(g):
-                momentum_rows.append({"team": team, "round": rnd, "phase_sort": phase_sort,
-                                       "conv": float(g) / float(sot) * 100})
+            if pd.notna(poss) and phase_sort < 9:
+                poss_rows.append({"team": team, "phase_sort": phase_sort, "possession": float(poss)})
 
-    if momentum_rows:
-        mom_df = pd.DataFrame(momentum_rows)
-
-        # Agréger par PHASE (phase_sort) et non par nom de round pour avoir l'ordre chronologique
-        # Les matchs de groupe ont tous phase_sort=0 mais des noms "Group A", "Group B"...
-        # On les regroupe en une seule phase "Groupes" pour la lisibilite
-        phase_labels = {0: "Groupes", 1: "1/32 F.", 2: "1/16 F.", 3: "Quarts", 4: "Demi-F.", 5: "Finale"}
-        agg_mom = (
-            mom_df.groupby(["team", "phase_sort"])["conv"]
+    if poss_rows:
+        poss_df  = pd.DataFrame(poss_rows)
+        # Moyenne de possession par équipe et par phase
+        agg_poss = (
+            poss_df.groupby(["team", "phase_sort"])["possession"]
             .mean()
             .reset_index()
         )
-        agg_mom["phase_label"] = agg_mom["phase_sort"].map(phase_labels)
-        agg_mom = agg_mom.sort_values(["team", "phase_sort"])
+        agg_poss = agg_poss.sort_values(["team", "phase_sort"])
 
-        # Garder uniquement les phases jouees par au moins une equipe selectionnee
-        played_phases = sorted(agg_mom["phase_sort"].unique())
+        played_phases = sorted(agg_poss["phase_sort"].unique())
 
         fig_mom = go.Figure()
-        for team in selected_m:
-            team_data = agg_mom[agg_mom["team"] == team].sort_values("phase_sort")
+        colors_cycle = ["#00B140", "#3498db", "#f39c12", "#e74c3c",
+                        "#9b59b6", "#1abc9c", "#e67e22", "#2ecc71"]
+        for i, team in enumerate(selected_m):
+            team_data = agg_poss[agg_poss["team"] == team].sort_values("phase_sort")
             if not team_data.empty:
+                color = colors_cycle[i % len(colors_cycle)]
                 fig_mom.add_trace(go.Scatter(
                     x=team_data["phase_sort"].tolist(),
-                    y=team_data["conv"].tolist(),
+                    y=team_data["possession"].tolist(),
                     mode="lines+markers",
                     name=team,
-                    marker=dict(size=8),
-                    line=dict(width=2),
-                    hovertemplate=f"<b>{team}</b><br>Phase : %{{x}}<br>Conversion : %{{y:.1f}}%<extra></extra>",
+                    marker=dict(size=9, color=color),
+                    line=dict(width=2.5, color=color),
+                    hovertemplate=f"<b>{team}</b><br>%{{customdata}}<br>Possession : %{{y:.0f}}%<extra></extra>",
+                    customdata=[_phase_labels.get(p, str(p)) for p in team_data["phase_sort"].tolist()],
                 ))
+
+        # Ligne de référence à 50%
+        fig_mom.add_hline(y=50, line_dash="dot", line_color="#555",
+                          annotation_text="50% (équilibre)", annotation_position="right")
+
         fig_mom.update_xaxes(
-            ticktext=[phase_labels.get(p, str(p)) for p in played_phases],
+            ticktext=[_phase_labels.get(p, str(p)) for p in played_phases],
             tickvals=played_phases,
-            title_text="Phase du tournoi",
+            title_text=None,
         )
-        fig_mom.update_yaxes(title_text="Conversion moyenne (%)")
+        fig_mom.update_yaxes(
+            title_text="Possession moyenne (%)",
+            range=[25, 80],
+        )
         fig_mom.update_layout(
-            template="plotly_dark", height=380,
+            template="plotly_dark",
+            height=380,
             margin=dict(t=20, b=10),
-            legend_title_text="Equipe",
+            legend_title_text="Équipe",
         )
         st.plotly_chart(fig_mom, width="stretch")
+        st.caption(
+            f"Possession moyenne par phase de tournoi. "
+            f"Calculée sur tous les matchs de chaque phase pour chaque équipe. "
+            f"Données : {meta['n_matches']} matchs."
+        )
+    else:
+        st.info("Sélectionne des équipes dans la liste pour voir leur évolution.")
 
+st.divider()
 st.caption(
     f"Clustering K-Means (k=4) + PCA sur 5 features statistiques. "
-    f"Donnees : {meta['n_matches']} matchs au {meta['last_updated_str']}."
+    f"Données : {meta['n_matches']} matchs au {meta['last_updated_str']}."
 )

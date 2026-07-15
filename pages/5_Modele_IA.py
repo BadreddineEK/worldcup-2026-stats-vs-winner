@@ -303,6 +303,6 @@ else:
     st.info("Pronostic incertain — le modèle ne dégage pas de favori clair (< 65%).")
 
 st.caption(
-    "⚠️ Simulation basée sur un modèle entraîné sur 96 matchs. "
-    "À titre pédagogique uniquement. Le football reste imprévisible par nature."
+    f"Simulation basee sur un modele entraine sur {meta['n_matches']} matchs. "
+    "A titre pedagogique uniquement. Le football reste imprevisible par nature."
 )
