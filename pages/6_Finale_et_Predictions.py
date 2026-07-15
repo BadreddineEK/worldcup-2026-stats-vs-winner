@@ -11,7 +11,6 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from src.bracket import (
-    HISTORICAL_BRACKETS,
     build_bracket_figure,
     compute_simulated_winners,
 )
@@ -37,12 +36,11 @@ df = pd.read_csv("data/matches_2026.csv")
 tp = build_team_profiles(df)
 
 # ─────────────────────────────────────────────────────────────
-# ONGLETS : 2026 Live | Simule | Historique
+# ONGLETS : 2026 Reel | Simule
 # ─────────────────────────────────────────────────────────────
-tab_live, tab_sim, tab_hist = st.tabs([
-    "CDM 2026 — Reel",
-    "CDM 2026 — Simule (stats)",
-    "Editions precedentes",
+tab_live, tab_sim = st.tabs([
+    "Parcours reel",
+    "Et si les stats decidaient ?",
 ])
 
 with tab_live:
@@ -73,19 +71,6 @@ with tab_sim:
         )
     fig_sim = build_bracket_figure(df, year=2026, simulated_winners=sim)
     st.plotly_chart(fig_sim, use_container_width=True)
-
-with tab_hist:
-    year_sel = st.radio(
-        "Choisir une edition", [2022, 2018, 2014],
-        horizontal=True, key="hist_year",
-    )
-    st.caption(
-        f"Bracket de la Coupe du Monde {year_sel}. "
-        "Resultats officiels (sources publiques : FIFA / Wikipedia)."
-    )
-    df_h = HISTORICAL_BRACKETS[year_sel]
-    fig_h = build_bracket_figure(df_h, year=year_sel)
-    st.plotly_chart(fig_h, use_container_width=True)
 
 st.divider()
 

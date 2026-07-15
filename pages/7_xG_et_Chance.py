@@ -2,7 +2,7 @@
 pages/7_xG_et_Chance.py — Expected Goals et facteur chance.
 
 Question : les equipes qui ont marque ont-elles vraiment MERITE leurs buts ?
-xG (Expected Goals) proxy = shots_on_target x taux_conversion_tournoi.
+Buts attendus (proxy) = shots_on_target x taux_conversion_tournoi.
 Sur-performance = "facteur chance". Sous-performance = "manque de realisme".
 """
 
@@ -14,16 +14,20 @@ import streamlit as st
 from src.ui import GREEN, RED, get_data, insight_card, render_sidebar, transparency_banner
 from src.xg import compute_match_xg, team_xg_summary, xg_label
 
-st.set_page_config(page_title="xG & Chance", page_icon="chart_with_upwards_trend", layout="wide")
+st.set_page_config(page_title="Facteur chance", page_icon="chart_with_upwards_trend", layout="wide")
 
 df_raw, meta = get_data()
 render_sidebar(meta)
 
-st.title("xG & facteur chance")
+st.title("Facteur chance & buts attendus")
 st.markdown(
-    "Les **Expected Goals (xG)** mesurent combien de buts une equipe *aurait du* "
-    "marquer compte tenu de la qualite de ses tirs. "
-    "La difference avec les buts reels = le **facteur chance**."
+    "Pour chaque match, combien de buts une equipe **meritait-elle** de marquer "
+    "selon ses tirs cadres ? La difference avec les buts reels = le **facteur chance**.\n\n"
+    "> **Note methode :** l indicateur utilise ici est un *proxy simplifie* : "
+    "`tirs_cadres x taux_de_conversion_moyen_du_tournoi`. "
+    "Ce n est **pas** le vrai xG (qui necessite les coordonnees de chaque tir "
+    "et un modele de regression sur des millions de tirs). "
+    "C est un indicateur reproductible, documente et suffisant pour comparer les equipes entre elles."
 )
 transparency_banner(meta, compact=True)
 
@@ -31,7 +35,7 @@ df = pd.read_csv("data/matches_2026.csv")
 summary = team_xg_summary(df)
 
 if summary.empty:
-    st.info("Pas assez de donnees pour l analyse xG.")
+    st.info("Pas assez de donnees pour calculer les buts attendus.")
     st.stop()
 
 st.divider()
@@ -47,11 +51,11 @@ c1, c2, c3 = st.columns(3)
 c1.metric("Buts marques (total)", int(total_goals))
 c2.metric("Taux de conversion moyen", f"{base_rate*100:.1f}%",
           help="Buts / tirs cadres sur l ensemble du tournoi")
-c3.metric("1 tir cadre = xG", f"{base_rate:.2f}",
+c3.metric("Val. 1 tir cadre", f"{base_rate:.2f}",
           help="Valeur d un tir cadre moyen dans ce tournoi")
 
 insight_card(
-    f"La <b>base de calcul du xG</b> dans ce tournoi : chaque tir cadre vaut "
+    f"La <b>base de calcul</b> dans ce tournoi : chaque tir cadre vaut "
     f"<b>{base_rate*100:.1f}%</b> de but en moyenne. "
     f"Un tir non cadre n apporte que {base_rate*100*0.08:.1f}%. "
     f"Ce taux sera compare aux performances reelles de chaque equipe.",
@@ -90,7 +94,7 @@ fig = px.scatter(
         "pct_vs_expected": True,
     },
     labels={
-        "xg_total": "Expected Goals (xG total)",
+        "xg_total": "Buts attendus (proxy)",
         "goals_total": "Buts reels (total)",
         "overperf_total": "Surperf. (buts - xG)",
     },
@@ -103,7 +107,7 @@ fig.add_trace(go.Scatter(
     x=[0, max_val], y=[0, max_val],
     mode="lines",
     line=dict(color="#888", dash="dash", width=1),
-    name="xG = buts reels",
+    name="Proxy = buts reels",
     showlegend=True,
 ))
 fig.update_traces(textposition="top center", textfont_size=9, selector=dict(mode="markers+text"))
@@ -131,7 +135,7 @@ with col1:
     top = lucky.iloc[0]
     insight_card(
         f"<b>{top['Equipe']}</b> a marque <b>{top['Surperf.']:+.1f}</b> buts de plus "
-        f"que son xG ({top['% vs attendu']:.0f}% de l attendu). "
+        f"que ses buts attendus (proxy) ({top['% vs attendu']:.0f}% de l attendu). "
         "Realisme exceptionnel ou facteur chance ?",
         GREEN,
     )
@@ -151,7 +155,7 @@ with col2:
     bot = unlucky.iloc[0]
     insight_card(
         f"<b>{bot['Equipe']}</b> a marque <b>{bot['Surperf.']:.1f}</b> buts de moins "
-        f"que son xG. En finale, elle aurait pu aller beaucoup plus loin.",
+        f"que ses buts attendus (proxy). En finale, elle aurait pu aller beaucoup plus loin.",
         RED,
     )
 
@@ -190,7 +194,7 @@ fig2 = go.Figure(go.Bar(
 fig2.add_hline(y=0, line_color="#888", line_dash="dot")
 fig2.update_layout(
     template="plotly_dark", height=350,
-    yaxis_title="Surperformance moyenne (buts - xG)",
+    yaxis_title="Surperf. moyenne (buts reels - buts attendus)",
     margin=dict(t=30, b=10),
 )
 st.plotly_chart(fig2, width="stretch")
@@ -227,7 +231,7 @@ if not team_matches.empty:
     fig3.add_hline(y=0, line_color="#888", line_dash="dot")
     fig3.update_layout(
         template="plotly_dark", height=320,
-        yaxis_title="Surperformance (buts - xG)",
+        yaxis_title="Surperf. (buts reels - buts attendus)",
         margin=dict(t=20, b=10),
     )
     st.plotly_chart(fig3, width="stretch")
