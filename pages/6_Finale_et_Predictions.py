@@ -1,8 +1,8 @@
 """
-pages/6_Finale_et_Predictions.py — Bracket + prediction de la finale CDM 2026.
+pages/6_Finale_et_Predictions.py
 
-Tournoi CDM 2026 (USA/Mexique/Canada) :
-  Quarts : 12-13 juillet | Demi-finales : 16-17 juillet | Finale : 19 juillet 2026
+Bracket interactif + prediction de la finale CDM 2026.
+Modes : Reel | Simule (stats) | Historique (2022 / 2018 / 2014).
 """
 
 import numpy as np
@@ -10,28 +10,26 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.bracket import build_bracket_figure
+from src.bracket import (
+    HISTORICAL_BRACKETS,
+    build_bracket_figure,
+    compute_simulated_winners,
+)
 from src.clustering import champion_similarity, get_historical_champions
 from src.team_analysis import build_ml_dataset, build_team_profiles, radar_data
 from src.ui import GREEN, RED, get_data, insight_card, render_sidebar, transparency_banner
 
 st.set_page_config(page_title="Finale & Predictions", page_icon="trophy", layout="wide")
 
-# Auto-refresh toutes les 10 min (les resultats arrivent en continu)
-@st.fragment(run_every="10m")
-def _auto_refresh():
-    from src.ui import clear_cache
-    clear_cache()
-_auto_refresh()
-
+# get_data est mis en cache (TTL 20 min) : pas de rechargement inutile
+# L auto-refresh est gere par le TTL, pas par un fragment agressif
 df_raw, meta = get_data()
 render_sidebar(meta)
 
 st.title("La Finale en chiffres")
 st.markdown(
-    "Le Data Lab suit le tournoi en direct. "
-    "**101+ matchs de donnees reelles** — bracket interactif, "
-    "profil des finalistes, prediction du champion."
+    "Bracket interactif — parcours reel, parcours simule selon les stats, "
+    "et prediction du champion pour la finale du **19 juillet 2026**."
 )
 transparency_banner(meta, compact=True)
 
@@ -39,28 +37,71 @@ df = pd.read_csv("data/matches_2026.csv")
 tp = build_team_profiles(df)
 
 # ─────────────────────────────────────────────────────────────
-# BRACKET COMPLET
+# ONGLETS : 2026 Live | Simule | Historique
 # ─────────────────────────────────────────────────────────────
-st.subheader("Le parcours vers la finale")
-fig_bracket = build_bracket_figure(df)
-st.plotly_chart(fig_bracket, use_container_width=True)
+tab_live, tab_sim, tab_hist = st.tabs([
+    "CDM 2026 — Reel",
+    "CDM 2026 — Simule (stats)",
+    "Editions precedentes",
+])
+
+with tab_live:
+    st.caption("Vainqueurs reels, matchs termines en vert. TBD = a venir.")
+    fig_real = build_bracket_figure(df, year=2026)
+    st.plotly_chart(fig_real, use_container_width=True)
+
+with tab_sim:
+    st.markdown(
+        "**Et si les stats avaient toujours decide ?** "
+        "Pour chaque match, l equipe qui domine la majorite des stats "
+        "(possession, tirs, tirs cadres) est dessinee en **orange** quand elle "
+        "a perdu en realite. Vert = reel = simule identiques."
+    )
+    sim = compute_simulated_winners(df)
+    surprises_ko = {
+        fid: dom for fid, dom in sim.items()
+        if fid > 191900  # uniquement phases eliminatoires
+        and fid in df.set_index("fixture_id").index
+        and dom != df.set_index("fixture_id").loc[fid, "winner"]
+    }
+    if surprises_ko:
+        insight_card(
+            f"<b>{len(surprises_ko)} match(s) surprises</b> en phase eliminatoire : "
+            "le dominant statistique n a pas gagne. "
+            "Orange dans le bracket = le simulé aurait franchi ce tour.",
+            "#f39c12",
+        )
+    fig_sim = build_bracket_figure(df, year=2026, simulated_winners=sim)
+    st.plotly_chart(fig_sim, use_container_width=True)
+
+with tab_hist:
+    year_sel = st.radio(
+        "Choisir une edition", [2022, 2018, 2014],
+        horizontal=True, key="hist_year",
+    )
+    st.caption(
+        f"Bracket de la Coupe du Monde {year_sel}. "
+        "Resultats officiels (sources publiques : FIFA / Wikipedia)."
+    )
+    df_h = HISTORICAL_BRACKETS[year_sel]
+    fig_h = build_bracket_figure(df_h, year=year_sel)
+    st.plotly_chart(fig_h, use_container_width=True)
 
 st.divider()
 
 # ─────────────────────────────────────────────────────────────
-# TEAMS EN LICE (semi-finalistes / finalistes)
+# EQUIPES EN LICE
 # ─────────────────────────────────────────────────────────────
 knockout_rounds = ["Quarter-finals", "Semi-finals", "Final"]
 ko = df[df["round"].isin(knockout_rounds)].copy()
 
-def get_active_teams(df_ko):
+def get_active(df_ko):
     order = ["Quarter-finals", "Semi-finals", "Final"]
     played = [r for r in order if r in df_ko["round"].values]
     if not played:
         return set()
-    last_r = played[-1]
     active = set()
-    for _, m in df_ko[df_ko["round"] == last_r].iterrows():
+    for _, m in df_ko[df_ko["round"] == played[-1]].iterrows():
         w = m["winner"]
         if w == "home":
             active.add(m["home_team"])
@@ -70,67 +111,41 @@ def get_active_teams(df_ko):
             active.add(m["home_team"]); active.add(m["away_team"])
     return active
 
-active_teams = get_active_teams(ko)
+active_teams = get_active(ko)
 if not active_teams:
-    qf_done = df[df["round"] == "Quarter-finals"]
-    for _, m in qf_done.iterrows():
-        w = m["winner"]
-        active_teams.add(m["home_team"] if w == "home" else m["away_team"])
+    for _, m in df[df["round"] == "Quarter-finals"].iterrows():
+        active_teams.add(m["home_team"] if m["winner"] == "home" else m["away_team"])
 
 if active_teams:
     nb = len(active_teams)
     stage = "finalistes" if nb == 2 else "demi-finalistes" if nb == 4 else "equipes en lice"
-    st.success(f"**{stage.capitalize()} :** {' — '.join(sorted(active_teams))}")
-
-# Tableau des profils
-r16_winners = set()
-for _, m in df[df["round"] == "Round of 16"].iterrows():
-    w = m["winner"]
-    r16_winners.add(m["home_team"] if w == "home" else m["away_team"])
-contenders = active_teams | r16_winners
-
-tp_c = tp[tp["team"].isin(contenders)].sort_values("efficiency_score", ascending=False).head(8)
-st.subheader("Profil statistique des equipes encore en lice")
-
-COLS = {
-    "team": "Equipe", "matches": "Matchs", "wins": "V",
-    "win_rate": "Win %", "avg_possession": "Poss.",
-    "avg_shots": "Tirs/m", "avg_conversion_rate": "Conv. %",
-    "efficiency_score": "Eff.",
-}
-st.dataframe(tp_c[list(COLS)].rename(columns=COLS), use_container_width=True, hide_index=True)
-
-st.divider()
+    st.success(f"**{stage.capitalize()} :** {chr(32).join([chr(8212).join(sorted(active_teams))])}")
 
 # ─────────────────────────────────────────────────────────────
-# SIMULATEUR INTERACTIF (st.fragment = ne recharge QUE cette section)
+# SIMULATEUR (st.fragment = seul ce bloc se recharge au changement d equipe)
 # ─────────────────────────────────────────────────────────────
 @st.fragment
 def prediction_clash():
-    st.subheader("Simulateur de finale — que dit le modele ?")
+    st.subheader("Simulateur de finale")
     st.markdown(
-        "Selectionne deux equipes. Le modele predit leur probabilite de victoire "
-        "**si leurs stats moyennes du tournoi se reproduisent en finale.**"
+        "Selectionne deux equipes. Le modele de regression logistique "
+        "entraine sur les matchs du tournoi calcule leur probabilite de victoire."
     )
 
     all_teams = sorted(tp["team"].tolist())
-    sorted_active = sorted(active_teams)
-    default_a = sorted_active[0] if sorted_active else "Spain"
-    default_b = sorted_active[1] if len(sorted_active) >= 2 else "England"
+    sa = sorted(active_teams)
+    def_a = sa[0] if sa else "Spain"
+    def_b = sa[1] if len(sa) >= 2 else "England"
 
-    col_a, col_b = st.columns(2)
-    with col_a:
-        team_a = st.selectbox(
-            "Equipe A", all_teams,
-            index=all_teams.index(default_a) if default_a in all_teams else 0,
-            key="fin_a",
-        )
-    with col_b:
-        team_b = st.selectbox(
-            "Equipe B", all_teams,
-            index=all_teams.index(default_b) if default_b in all_teams else 1,
-            key="fin_b",
-        )
+    c_sel1, c_sel2 = st.columns(2)
+    with c_sel1:
+        team_a = st.selectbox("Equipe A", all_teams,
+                              index=all_teams.index(def_a) if def_a in all_teams else 0,
+                              key="fin_a")
+    with c_sel2:
+        team_b = st.selectbox("Equipe B", all_teams,
+                              index=all_teams.index(def_b) if def_b in all_teams else 1,
+                              key="fin_b")
 
     if team_a == team_b:
         st.warning("Choisis deux equipes differentes.")
@@ -139,16 +154,14 @@ def prediction_clash():
     ra = tp[tp["team"] == team_a]
     rb = tp[tp["team"] == team_b]
     if ra.empty or rb.empty:
-        st.error("Donnees manquantes.")
         return
     ra, rb = ra.iloc[0], rb.iloc[0]
 
-    # Modele
     from sklearn.linear_model import LogisticRegression
     from sklearn.preprocessing import StandardScaler
 
     @st.cache_data(ttl=3600, show_spinner=False)
-    def _get_model(n):
+    def _model(n):
         ml = build_ml_dataset(pd.read_csv("data/matches_2026.csv"))
         F = ["poss_diff", "shots_diff", "sot_diff", "passes_diff", "corners_diff"]
         X = ml[F].values; y = ml["won"].values
@@ -157,28 +170,26 @@ def prediction_clash():
         lr.fit(sc.transform(X), y)
         return lr, sc, F
 
-    lr, sc, F = _get_model(meta["n_matches"])
+    lr, sc, _ = _model(meta["n_matches"])
 
     def _pred(r1, r2):
-        diffs = np.array([[
-            r1["avg_possession"] - r2["avg_possession"],
-            r1["avg_shots"] - r2["avg_shots"],
-            r1["avg_shots_on_target"] - r2["avg_shots_on_target"],
-            r1["avg_passes"] - r2["avg_passes"],
-            r1["avg_corners"] - r2["avg_corners"],
-        ]])
-        return float(lr.predict_proba(sc.transform(diffs))[0][1])
+        d = np.array([[r1["avg_possession"]-r2["avg_possession"],
+                       r1["avg_shots"]-r2["avg_shots"],
+                       r1["avg_shots_on_target"]-r2["avg_shots_on_target"],
+                       r1["avg_passes"]-r2["avg_passes"],
+                       r1["avg_corners"]-r2["avg_corners"]]])
+        return float(lr.predict_proba(sc.transform(d))[0][1])
 
-    p_a = _pred(ra, rb); p_b = _pred(rb, ra)
-    total = p_a + p_b
-    pa = p_a / total if total > 0 else 0.5
+    pa_raw = _pred(ra, rb); pb_raw = _pred(rb, ra)
+    tot = pa_raw + pb_raw
+    pa = pa_raw / tot if tot > 0 else 0.5
     pb = 1 - pa
 
-    c1, c_vs, c2 = st.columns([2, 1, 2])
+    c1, cv, c2 = st.columns([2, 1, 2])
     with c1:
         st.metric(team_a, f"{pa*100:.1f}%", "P(victoire)")
         st.progress(pa)
-    with c_vs:
+    with cv:
         st.markdown("### VS")
     with c2:
         st.metric(team_b, f"{pb*100:.1f}%", "P(victoire)")
@@ -187,39 +198,34 @@ def prediction_clash():
     fav = team_a if pa > pb else team_b
     margin = abs(pa - 0.5) * 100
     if margin < 5:
-        insight_card(f"<b>Match trop serre</b> pour trancher. Les donnees ne favorisent pas clairement {team_a} ni {team_b}.", "#f39c12")
+        insight_card(f"<b>Match trop serre</b> pour trancher. Moins de {margin:.0f}pt d ecart.", "#f39c12")
     else:
-        col = GREEN if pa > 0.5 else GREEN
         pct = max(pa, pb) * 100
         insight_card(
-            f"<b>Le modele avantage {fav}</b> ({pct:.0f}%) d apres les stats moyennes du tournoi. "
-            f"Possession : {ra['avg_possession']:.0f}% vs {rb['avg_possession']:.0f}%. "
-            f"Conversion : {ra['avg_conversion_rate']:.0f}% vs {rb['avg_conversion_rate']:.0f}%.",
-            col,
+            f"<b>Le modele avantage {fav}</b> ({pct:.0f}%) sur la base des stats du tournoi. "
+            f"Possession {ra['avg_possession']:.0f}% vs {rb['avg_possession']:.0f}%. "
+            f"Conversion {ra['avg_conversion_rate']:.0f}% vs {rb['avg_conversion_rate']:.0f}%.",
+            GREEN,
         )
 
-    # Radar
+    # Radar comparatif
     st.subheader("Comparaison radar")
     la, va = radar_data(ra, tp)
     lb, vb = radar_data(rb, tp)
     fig_r = go.Figure()
     for name, vals, color in [(team_a, va, GREEN), (team_b, vb, "#3498db")]:
         vc = vals + [vals[0]]; lc = la + [la[0]]
-        fig_r.add_trace(go.Scatterpolar(
-            r=vc, theta=lc, fill="toself", name=name,
-            line_color=color, fillcolor=color, opacity=0.35,
-        ))
-    fig_r.update_layout(
-        polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
-        template="plotly_dark", height=400, margin=dict(t=30, b=10),
-    )
+        fig_r.add_trace(go.Scatterpolar(r=vc, theta=lc, fill="toself", name=name,
+                                        line_color=color, fillcolor=color, opacity=0.35))
+    fig_r.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
+                        template="plotly_dark", height=400, margin=dict(t=30, b=10))
     st.plotly_chart(fig_r, use_container_width=True)
 
-    # Champion historique
-    st.subheader("Champion prototype — contexte historique")
+    # Comparaison champions historiques
+    st.subheader("Quel champion historique ressemblent-ils le plus ?")
     hist = get_historical_champions()
-    c_h1, c_h2 = st.columns(2)
-    for col, team, row in [(c_h1, team_a, ra), (c_h2, team_b, rb)]:
+    ch1, ch2 = st.columns(2)
+    for col, team, row in [(ch1, team_a, ra), (ch2, team_b, rb)]:
         sims = champion_similarity(row, hist)
         with col:
             st.markdown(f"**{team}** ressemble le plus a :")
@@ -230,9 +236,6 @@ def prediction_clash():
             else:
                 st.info("Donnees insuffisantes.")
 
-    st.caption(
-        f"Prediction : regression logistique sur {meta['n_matches']} matchs. "
-        "A titre analytique — pas un pronostic de pari."
-    )
+    st.caption(f"Modele : regression logistique sur {meta['n_matches']} matchs. A titre analytique.")
 
 prediction_clash()

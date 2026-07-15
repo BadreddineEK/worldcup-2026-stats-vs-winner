@@ -244,16 +244,46 @@ if selected_m:
 
     if momentum_rows:
         mom_df = pd.DataFrame(momentum_rows)
-        agg_mom = mom_df.groupby(["team", "round", "phase_sort"])["conv"].mean().reset_index()
-        agg_mom = agg_mom.sort_values("phase_sort")
 
-        fig_mom = px.line(
-            agg_mom, x="round", y="conv", color="team",
-            markers=True,
-            labels={"conv": "Conversion moy. (%)", "round": "Phase", "team": "Equipe"},
-            template="plotly_dark",
+        # Agréger par PHASE (phase_sort) et non par nom de round pour avoir l'ordre chronologique
+        # Les matchs de groupe ont tous phase_sort=0 mais des noms "Group A", "Group B"...
+        # On les regroupe en une seule phase "Groupes" pour la lisibilite
+        phase_labels = {0: "Groupes", 1: "1/32 F.", 2: "1/16 F.", 3: "Quarts", 4: "Demi-F.", 5: "Finale"}
+        agg_mom = (
+            mom_df.groupby(["team", "phase_sort"])["conv"]
+            .mean()
+            .reset_index()
         )
-        fig_mom.update_layout(height=380, margin=dict(t=20, b=10))
+        agg_mom["phase_label"] = agg_mom["phase_sort"].map(phase_labels)
+        agg_mom = agg_mom.sort_values(["team", "phase_sort"])
+
+        # Garder uniquement les phases jouees par au moins une equipe selectionnee
+        played_phases = sorted(agg_mom["phase_sort"].unique())
+
+        fig_mom = go.Figure()
+        for team in selected_m:
+            team_data = agg_mom[agg_mom["team"] == team].sort_values("phase_sort")
+            if not team_data.empty:
+                fig_mom.add_trace(go.Scatter(
+                    x=team_data["phase_sort"].tolist(),
+                    y=team_data["conv"].tolist(),
+                    mode="lines+markers",
+                    name=team,
+                    marker=dict(size=8),
+                    line=dict(width=2),
+                    hovertemplate=f"<b>{team}</b><br>Phase : %{{x}}<br>Conversion : %{{y:.1f}}%<extra></extra>",
+                ))
+        fig_mom.update_xaxes(
+            ticktext=[phase_labels.get(p, str(p)) for p in played_phases],
+            tickvals=played_phases,
+            title_text="Phase du tournoi",
+        )
+        fig_mom.update_yaxes(title_text="Conversion moyenne (%)")
+        fig_mom.update_layout(
+            template="plotly_dark", height=380,
+            margin=dict(t=20, b=10),
+            legend_title_text="Equipe",
+        )
         st.plotly_chart(fig_mom, width="stretch")
 
 st.caption(
