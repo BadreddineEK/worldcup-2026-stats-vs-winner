@@ -16,7 +16,7 @@ import streamlit as st
 from .analysis import annotate_matches
 from .data_build import load_matches
 
-CACHE_TTL = 3 * 60 * 60  # 3 h — tournoi en cours
+CACHE_TTL = 20 * 60  # 20 min — phase finale, on veut des donnees tres fraiches
 GREEN = "#00B140"
 RED   = "#e74c3c"
 BLUE  = "#3498db"

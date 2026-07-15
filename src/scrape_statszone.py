@@ -31,8 +31,8 @@ REQUEST_TIMEOUT = 20
 POLITE_DELAY = 0.8  # secondes entre deux fiches match
 
 CACHE_DIR = Path(__file__).resolve().parent.parent / "data" / ".cache"
-RESULTS_TTL = 60 * 60           # 1 h : la liste évolue pendant le tournoi
-MATCH_TTL = 30 * 24 * 60 * 60   # ~30 j : un match terminé ne change plus
+RESULTS_TTL = 15 * 60           # 15 min : phase finale, resultats tres attendus
+MATCH_TTL = 30 * 24 * 60 * 60   # ~30 j : un match termine ne change plus
 
 # Libellés The Stats Zone → nos colonnes
 _STAT_MAP = {

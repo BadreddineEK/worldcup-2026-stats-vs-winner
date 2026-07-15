@@ -22,6 +22,15 @@ from src.ui import GREEN, RED, get_data, insight_card, render_sidebar, transpare
 
 st.set_page_config(page_title="Finale & Predictions", page_icon="trophy", layout="wide")
 
+# Auto-refresh toutes les 10 min : nouveau resultat = nouvelles donnees automatiquement
+# st.fragment permet de recharger sans recharger toute la page
+@st.fragment(run_every="10m")
+def _auto_refresh():
+    from src.ui import clear_cache
+    clear_cache()
+
+_auto_refresh()
+
 df_raw, meta = get_data()
 render_sidebar(meta)
 
