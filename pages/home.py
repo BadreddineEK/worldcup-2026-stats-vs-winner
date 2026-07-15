@@ -137,17 +137,22 @@ st.caption(
 )
 
 top = tp[tp["matches"] >= 3].nlargest(6, "efficiency_score")
-cols_t = st.columns(6)
-for i, (_, r) in enumerate(top.iterrows()):
-    conv = r["avg_conversion_rate"]
-    conv_str = f"{conv:.0f}% conv" if pd.notna(conv) else "conv. n/d"
-    with cols_t[i]:
-        st.metric(
-            r["team"],
-            f"{int(r['wins'])}/{int(r['matches'])} V",
-            delta=f"{r['avg_possession']:.0f}% poss · {conv_str}",
-            delta_color="off",
-        )
+# 2 rangees de 3 (bien sur mobile, bien sur desktop)
+top_list = list(top.iterrows())
+for row_start in range(0, 6, 3):
+    row_teams = top_list[row_start:row_start + 3]
+    cols_row = st.columns(len(row_teams))
+    for j, (_, r) in enumerate(row_teams):
+        conv = r["avg_conversion_rate"]
+        conv_str = f"{conv:.0f}% conv" if pd.notna(conv) else "conv. n/d"
+        with cols_row[j]:
+            rank = row_start + j + 1
+            st.metric(
+                r["team"],
+                f"{int(r['wins'])}/{int(r['matches'])} V",
+                delta=f"#{rank} · {r['avg_possession']:.0f}% · {conv_str}",
+                delta_color="off",
+            )
 
 st.caption(
     f"Données au {meta['last_updated_str']} · "

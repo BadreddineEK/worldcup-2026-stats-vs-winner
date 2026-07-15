@@ -44,7 +44,8 @@ tab_live, tab_sim = st.tabs([
 ])
 
 with tab_live:
-    st.caption("Vainqueurs reels, matchs termines en vert. TBD = a venir.")
+    st.caption("Vainqueurs reels, matchs termines en vert. TBD = a venir. "
+               "Sur mobile : pincez pour zoomer, glissez pour naviguer.")
     fig_real = build_bracket_figure(df, year=2026)
     st.plotly_chart(fig_real, use_container_width=True)
 

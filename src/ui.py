@@ -68,10 +68,70 @@ def render_sidebar(meta: dict | None = None) -> None:
     Sidebar contextuelle affichée sur toutes les pages.
     Rappelle l'objet du projet + les chiffres clés live.
     """
+    # ── CSS responsive mobile (injecté une fois via sidebar, s'applique à toute la page)
+    st.markdown("""
+    <style>
+    /* ── RESPONSIVE MOBILE ─────────────────────────────────────────────── */
+
+    /* Sur téléphone (<= 480px) : empiler toutes les colonnes Streamlit */
+    @media (max-width: 480px) {
+        [data-testid="stHorizontalBlock"] {
+            flex-direction: column !important;
+        }
+        [data-testid="stColumn"] {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+        }
+        /* Titres plus petits */
+        h1 { font-size: 1.4rem !important; }
+        h2 { font-size: 1.15rem !important; }
+        h3 { font-size: 1.0rem !important; }
+        /* Métriques moins encombrantes */
+        [data-testid="metric-container"] [data-testid="stMetricValue"] {
+            font-size: 1.1rem !important;
+        }
+        [data-testid="metric-container"] [data-testid="stMetricLabel"] {
+            font-size: 0.72rem !important;
+        }
+        /* Scrollable horizontal pour les graphiques larges */
+        [data-testid="stPlotlyChart"] {
+            overflow-x: auto !important;
+        }
+    }
+
+    /* Sur tablette (481-768px) : permettre les colonnes de se replier */
+    @media (max-width: 768px) {
+        [data-testid="stHorizontalBlock"] {
+            flex-wrap: wrap !important;
+        }
+        /* 4+ colonnes → 2 par ligne */
+        [data-testid="stHorizontalBlock"]:has(> div:nth-child(4))
+            > [data-testid="stColumn"] {
+            min-width: 45% !important;
+            flex: 1 1 45% !important;
+        }
+        /* 5+ colonnes → 2 par ligne */
+        [data-testid="stHorizontalBlock"]:has(> div:nth-child(5))
+            > [data-testid="stColumn"] {
+            min-width: 45% !important;
+            flex: 1 1 45% !important;
+        }
+        /* 6 colonnes → 2 par ligne */
+        [data-testid="stHorizontalBlock"]:has(> div:nth-child(6))
+            > [data-testid="stColumn"] {
+            min-width: 45% !important;
+            flex: 1 1 45% !important;
+        }
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     with st.sidebar:
         st.markdown("## ⚽ CDM 2026 Data Lab")
+        n_str = str(meta["n_matches"]) if meta and meta.get("n_matches") else "101"
         st.markdown(
-            "**97 matchs réels · 48 équipes**\n\n"
+            f"**{n_str} matchs réels · 48 équipes**\n\n"
             "Un Data Lab qui répond à une seule question, "
             "sous toutes ses facettes :\n\n"
             "*Les statistiques de match prédisent-elles vraiment le vainqueur ?*"
