@@ -5,6 +5,7 @@ Pour chaque match TERMINÉ, on confronte possession, tirs et tirs cadrés au
 résultat final. On répond, chiffres à l'appui, à la question du projet.
 """
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -176,14 +177,28 @@ if len(scatter_df) >= 5:
     )
     pts = pd.concat([home_pts, away_pts], ignore_index=True)
     pts = pts.dropna(subset=["possession", "buts"])
+    # OLS manuel avec numpy (pas besoin de statsmodels)
+    x_vals = pts["possession"].values
+    y_vals = pts["buts"].values
+    z = np.polyfit(x_vals, y_vals, 1)
+    x_line = np.array([x_vals.min(), x_vals.max()])
+    y_line = np.polyval(z, x_line)
+
     fig_s = px.scatter(
         pts, x="possession", y="buts",
         hover_data=["equipe", "round"],
-        trendline="ols",
         color_discrete_sequence=["#00B140"],
         labels={"possession": "Possession (%)", "buts": "Buts marqués"},
         template="plotly_dark",
     )
+    # Ajouter la ligne de tendance OLS manuellement
+    fig_s.add_trace(go.Scatter(
+        x=x_line, y=y_line,
+        mode="lines",
+        line=dict(color="#f39c12", width=2, dash="dash"),
+        name="Tendance OLS",
+        showlegend=True,
+    ))
     fig_s.update_layout(height=400, margin=dict(t=30, b=10))
     st.plotly_chart(fig_s, width='stretch')
     # Corrélation rapide
