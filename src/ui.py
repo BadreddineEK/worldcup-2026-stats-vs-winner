@@ -10,6 +10,11 @@ Centralise :
 
 from __future__ import annotations
 
+import warnings
+# Masquer les warnings de deprecation Plotly (n'affectent pas le comportement)
+warnings.filterwarnings("ignore", message=".*keyword arguments have been deprecated.*")
+warnings.filterwarnings("ignore", message=".*Use `config` instead.*")
+
 import pandas as pd
 import streamlit as st
 
