@@ -86,7 +86,7 @@ if "round" in df.columns:
         fig_ps.add_hline(y=33, line_dash="dot", line_color="#888",
                          annotation_text="1 sur 3 (33 %)")
         fig_ps.update_layout(
-            yaxis_range=[0, 100], template="plotly_dark",
+            yaxis_range=[0, 100], template="simple_white",
             height=320, margin=dict(t=30, b=10),
             yaxis_title="Taux de surprise (%)",
         )

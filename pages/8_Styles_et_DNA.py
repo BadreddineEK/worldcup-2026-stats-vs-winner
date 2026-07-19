@@ -73,7 +73,7 @@ fig = px.scatter(
         "pca_y": f"Dimension 2 ({ev2:.0f}% variance)",
         "cluster_name": "Profil",
     },
-    template="plotly_dark",
+    template="simple_white",
     height=560,
 )
 fig.update_traces(textposition="top center", textfont_size=8)
@@ -167,7 +167,7 @@ if cluster_stats is not None:
             values="Titres",
             color="Profil",
             color_discrete_map=CLUSTER_COLORS,
-            template="plotly_dark",
+            template="simple_white",
             hole=0.4,
         )
         fig_pie.update_layout(height=300, margin=dict(t=20, b=10))
@@ -293,7 +293,7 @@ if selected_m:
             range=[25, 80],
         )
         fig_mom.update_layout(
-            template="plotly_dark",
+            template="simple_white",
             height=380,
             margin=dict(t=20, b=10),
             legend_title_text="Équipe",

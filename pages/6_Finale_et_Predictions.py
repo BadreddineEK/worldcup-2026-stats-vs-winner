@@ -205,7 +205,7 @@ def prediction_clash():
         fig_r.add_trace(go.Scatterpolar(r=vc, theta=lc, fill="toself", name=name,
                                         line_color=color, fillcolor=color, opacity=0.35))
     fig_r.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
-                        template="plotly_dark", height=400, margin=dict(t=30, b=10))
+                        template="simple_white", height=400, margin=dict(t=30, b=10))
     st.plotly_chart(fig_r, use_container_width=True)
 
     # Comparaison champions historiques

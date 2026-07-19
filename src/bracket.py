@@ -121,10 +121,10 @@ BRACKET_STRUCTURES = {
 
 def _team_colors(is_winner, is_surprise):
     if is_surprise:
-        return "#f39c12", "rgba(243,156,18,0.12)"
+        return "#d97706", "rgba(217,119,6,0.08)"   # amber
     if is_winner:
-        return "#00B140", "rgba(0,177,64,0.12)"
-    return "#c9d1d9", "rgba(22,27,34,0.0)"  # texte blanc-gris sur fond transparent
+        return "#00B140", "rgba(0,177,64,0.10)"    # green
+    return "#475569", "rgba(248,250,252,0.5)"       # slate sur fond clair
 
 
 def _add_match(fig, x, y_center, team_home, score_home, team_away, score_away,
@@ -160,7 +160,7 @@ def _add_match(fig, x, y_center, team_home, score_home, team_away, score_away,
                            font=dict(size=11, color="#e6edf3"), showarrow=False)
 
     fig.add_shape(type="line", x0=x + 0.12, x1=x + BOX_W - 0.12,
-                  y0=y_center, y1=y_center, line=dict(color="#374151", width=0.5))
+                  y0=y_center, y1=y_center, line=dict(color="#cbd5e1", width=0.5))
 
     if not is_upcoming and status and status not in ("FT", ""):
         fig.add_annotation(x=x + BOX_W / 2, y=y_center + 0.02,
@@ -175,7 +175,7 @@ def _add_match(fig, x, y_center, team_home, score_home, team_away, score_away,
 def _connector(fig, x0, y0, x1, y1):
     xm = (x0 + x1) / 2
     fig.add_shape(type="path", path=f"M {x0} {y0} H {xm} V {y1} H {x1}",
-                  line=dict(color="#4b5563", width=1.0))
+                  line=dict(color="#94a3b8", width=1.0))
 
 
 def build_bracket_figure(df: pd.DataFrame, year: int = 2026,
@@ -245,17 +245,17 @@ def build_bracket_figure(df: pd.DataFrame, year: int = 2026,
     y_min = min(_Y.values()) - 2.2
     for label, x_key in [("1/16 de finale","r16"),("Quarts","qf"),("Demi-finales","sf"),("Finale","final")]:
         fig.add_annotation(x=_X[x_key] + BOX_W/2, y=y_max, text=f"<b>{label}</b>",
-                           showarrow=False, font=dict(size=12, color="#e6edf3"))
+                           showarrow=False, font=dict(size=12, color="#1a1d23", family="Arial"))
 
     if simulated_winners:
         fig.add_annotation(x=0, y=y_min + 0.6,
-            text='T = vainqueur reel  |  S = simule selon stats (orange = surprise)',
-            xanchor="left", showarrow=False, font=dict(size=9, color="#9ca3af"))
+            text='Vert = vainqueur reel  |  Orange = equipe simulee (stats dominantes)',
+            xanchor="left", showarrow=False, font=dict(size=9, color="#64748b"))
 
     fig.update_layout(
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(248,250,252,0.3)",
         xaxis=dict(visible=False, range=[-0.5, _X["final"] + BOX_W + 0.5]),
         yaxis=dict(visible=False, range=[y_min, y_max + 0.5]),
         height=700, margin=dict(t=40, b=20, l=10, r=10), showlegend=False,

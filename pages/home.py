@@ -62,36 +62,19 @@ st.subheader("Les chiffres qui ont marqué ce Mondial")
 
 records = tournament_records(df)
 # Afficher en 2 rangées de 3
-recs_html = '''
-<style>
-.rec-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:8px; }
-@media(max-width:768px){.rec-grid{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:480px){.rec-grid{grid-template-columns:1fr;}}
-.rec-card {
-  background:rgba(22,27,34,0.85);
-  border:1px solid #374151;
-  border-radius:10px;
-  padding:14px 16px;
-  transition:border-color 0.2s;
-}
-.rec-icon { font-size:22px; margin-bottom:6px; display:block; }
-.rec-label { color:#6b7280; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px; }
-.rec-value { color:#e6edf3; font-size:22px; font-weight:700; display:block; margin-bottom:3px; }
-.rec-detail { color:#9ca3af; font-size:11.5px; }
-</style>
-<div class="rec-grid">
-'''
-for r in records:
-    border_color = r.get("color", "#374151")
-    recs_html += f'''
-<div class="rec-card" style="border-color:{border_color}50;">
-  <span class="rec-icon">{r["icon"]}</span>
-  <span class="rec-label">{r["label"]}</span>
-  <span class="rec-value" style="color:{border_color};">{r["value"]}</span>
-  <span class="rec-detail">{r["detail"]}</span>
-</div>'''
-recs_html += '</div>'
-st.markdown(recs_html, unsafe_allow_html=True)
+# Cartes natives Streamlit (s adaptent au theme light/dark)
+rec_cols = [st.columns(3), st.columns(3)]
+for i, r in enumerate(records):
+    with rec_cols[i // 3][i % 3]:
+        with st.container(border=True):
+            st.markdown(f"**{r['icon']} {r['label']}**")
+            st.markdown(
+                f"<span style='font-size:26px;font-weight:700;color:{r['color']}'>"
+                f"{r['value']}</span>",
+                unsafe_allow_html=True,
+            )
+            st.caption(r["detail"])
+
 
 st.divider()
 
@@ -242,7 +225,7 @@ fig_s.add_vline(x=50, line_dash="dot", line_color="#4b5563", annotation_text="50
 fig_s.update_layout(
     xaxis_title="Possession moyenne (%)",
     yaxis_title="Buts marqués / match",
-    template="plotly_dark",
+    template="simple_white",
     height=480,
     margin=dict(t=30, b=10),
     showlegend=True,
@@ -271,7 +254,7 @@ with col_left:
             x=rc["round"], y=rc["n"], text=rc["n"], textposition="outside",
             marker_color=colors,
         ))
-        fig.update_layout(template="plotly_dark", height=260,
+        fig.update_layout(template="simple_white", height=260,
                           margin=dict(t=10, b=0), yaxis_title="Matchs", showlegend=False)
         st.plotly_chart(fig, use_container_width=True)
 

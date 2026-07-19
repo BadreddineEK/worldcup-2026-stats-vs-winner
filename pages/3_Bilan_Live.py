@@ -63,7 +63,7 @@ if "round" in df.columns:
             marker_color="#00B140",
         ))
         fig_pc.update_layout(
-            template="plotly_dark", height=300,
+            template="simple_white", height=300,
             margin=dict(t=20, b=10), yaxis_title="Matchs",
         )
         st.plotly_chart(fig_pc, width='stretch')

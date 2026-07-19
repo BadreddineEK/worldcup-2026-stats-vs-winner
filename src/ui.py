@@ -218,7 +218,7 @@ def insight_card(text: str, color: str = GREEN) -> None:
     st.markdown(
         f"""<div style="border-left:4px solid {color};
         padding:0.6rem 1rem; border-radius:0 6px 6px 0;
-        background:rgba(0,0,0,0.15); margin:0.5rem 0;">
+        background:rgba(0,0,0,0.04); margin:0.5rem 0;">
         {text}</div>""",
         unsafe_allow_html=True,
     )

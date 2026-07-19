@@ -108,7 +108,7 @@ else:
         fig.update_layout(
             yaxis_title="Le meneur de la stat gagne (%)",
             yaxis_range=[0, 100],
-            template="plotly_dark",
+            template="simple_white",
             height=380,
             margin=dict(t=30, b=10),
         )
@@ -153,7 +153,7 @@ if "round" in df.columns and "dominant_won" in df.columns:
         ))
         fig_r.add_hline(y=50, line_dash="dash", line_color="#888")
         fig_r.update_layout(
-            yaxis_range=[0, 100], template="plotly_dark",
+            yaxis_range=[0, 100], template="simple_white",
             height=350, margin=dict(t=30, b=10),
             yaxis_title="Le dominant gagne (%)",
         )
@@ -188,7 +188,7 @@ if len(scatter_df) >= 5:
         hover_data=["equipe", "round"],
         color_discrete_sequence=["#00B140"],
         labels={"possession": "Possession (%)", "buts": "Buts marqués"},
-        template="plotly_dark",
+        template="simple_white",
     )
     # Ajouter la ligne de tendance OLS manuellement
     fig_s.add_trace(go.Scatter(

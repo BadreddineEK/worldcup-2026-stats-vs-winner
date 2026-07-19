@@ -98,7 +98,7 @@ fig = px.scatter(
         "goals_total": "Buts reels (total)",
         "overperf_total": "Surperf. (buts - xG)",
     },
-    template="plotly_dark",
+    template="simple_white",
 )
 
 # Diagonale de reference
@@ -193,7 +193,7 @@ fig2 = go.Figure(go.Bar(
 ))
 fig2.add_hline(y=0, line_color="#888", line_dash="dot")
 fig2.update_layout(
-    template="plotly_dark", height=350,
+    template="simple_white", height=350,
     yaxis_title="Surperf. moyenne (buts reels - buts attendus)",
     margin=dict(t=30, b=10),
 )
@@ -230,7 +230,7 @@ if not team_matches.empty:
     ))
     fig3.add_hline(y=0, line_color="#888", line_dash="dot")
     fig3.update_layout(
-        template="plotly_dark", height=320,
+        template="simple_white", height=320,
         yaxis_title="Surperf. (buts reels - buts attendus)",
         margin=dict(t=20, b=10),
     )

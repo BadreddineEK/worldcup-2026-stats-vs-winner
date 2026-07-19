@@ -174,7 +174,7 @@ with tab1:
     ))
     fig_c1.add_hline(y=0, line_color="#555")
     fig_c1.update_layout(
-        template="plotly_dark", height=380,
+        template="simple_white", height=380,
         yaxis_title="Coefficient (logistic regression)",
         margin=dict(t=20, b=10),
         title="Coefficient = impact d'un écart +1σ sur la probabilité de victoire",
@@ -203,7 +203,7 @@ with tab2:
     ))
     fig_c2.add_hline(y=0, line_color="#555")
     fig_c2.update_layout(
-        template="plotly_dark", height=380,
+        template="simple_white", height=380,
         yaxis_title="Coefficient (logistic regression)",
         margin=dict(t=20, b=10),
     )
@@ -237,7 +237,7 @@ fig_p.add_vline(x=50, line_dash="dot", line_color="#888",
                 annotation_text="50% (égalité)")
 fig_p.add_hline(y=50, line_dash="dot", line_color="#888")
 fig_p.update_layout(
-    template="plotly_dark", height=360,
+    template="simple_white", height=360,
     xaxis_title="Possession (%)",
     yaxis_title="P(victoire) estimée (%)",
     yaxis_range=[0, 100],

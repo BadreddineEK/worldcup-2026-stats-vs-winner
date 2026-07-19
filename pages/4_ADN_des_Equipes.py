@@ -86,7 +86,7 @@ fig = px.scatter(
         "goals_for": "Buts marqués (total)",
     },
     text="team",
-    template="plotly_dark",
+    template="simple_white",
     height=520,
 )
 fig.update_traces(textposition="top center", textfont_size=10)
@@ -165,7 +165,7 @@ fig2 = px.scatter(
         "win_rate": "Win rate %",
     },
     text="team",
-    template="plotly_dark",
+    template="simple_white",
     height=480,
 )
 fig2.update_traces(textposition="top center", textfont_size=9)
@@ -220,7 +220,7 @@ if team_b != "—":
 
 fig3.update_layout(
     polar=dict(radialaxis=dict(visible=True, range=[0, 100], tickfont_size=9)),
-    template="plotly_dark",
+    template="simple_white",
     height=500,
     margin=dict(t=40, b=40),
     showlegend=True,
