@@ -118,21 +118,60 @@ CLUSTER_COLORS = {
     "Pragmatiques Cliniques": "#f59e0b",
     "Defensifs Compteurs": "#ef4444",
 }
+CLUSTER_LABELS = {
+    "Champions Techniques": "Champions techniques",
+    "Dominateurs Frustres": "Dominateurs frustrés",
+    "Pragmatiques Cliniques": "Pragmatiques cliniques",
+    "Defensifs Compteurs": "Défensifs / compteurs",
+}
+
 if clustered is not None:
+    st.caption(
+        "Chaque équipe est positionnée par ses statistiques (algorithme K-Means + PCA). "
+        "Plus deux équipes sont proches, plus leur style de jeu se ressemble. "
+        "Les couleurs regroupent les 4 grands profils."
+    )
+    fig_cl = go.Figure()
+    for cname, color in CLUSTER_COLORS.items():
+        grp = clustered[clustered["cluster_name"] == cname]
+        if grp.empty:
+            continue
+        fig_cl.add_trace(go.Scatter(
+            x=grp["pca_x"], y=grp["pca_y"],
+            mode="markers+text",
+            text=grp["team"],
+            textposition="top center",
+            textfont=dict(size=8.5, color="#334155"),
+            marker=dict(size=13, color=color, opacity=0.85,
+                        line=dict(color="white", width=1)),
+            name=CLUSTER_LABELS.get(cname, cname),
+            hovertemplate="<b>%{text}</b><br>" + CLUSTER_LABELS.get(cname, cname) + "<extra></extra>",
+        ))
+    fig_cl.update_layout(
+        template="simple_white",
+        height=520,
+        margin=dict(t=10, b=10),
+        xaxis=dict(title="Axe 1 (styles de jeu)", showticklabels=False, zeroline=False),
+        yaxis=dict(title="Axe 2", showticklabels=False, zeroline=False),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
+    )
+    st.plotly_chart(fig_cl, width="stretch")
+
+    # Cartes recap des 4 profils
     cols = st.columns(4)
     for i, (cname, color) in enumerate(CLUSTER_COLORS.items()):
         teams_in = clustered[clustered["cluster_name"] == cname]["team"].tolist()
         finalists_in = [t_n for t_n in teams_in if t_n in finalist_teams]
         with cols[i]:
             with st.container(border=True):
-                st.markdown(f"**{cname.replace('Frustres', 'Frustrés').replace('Defensifs', 'Défensifs')}**")
+                st.markdown(f"**{CLUSTER_LABELS.get(cname, cname)}**")
                 if cluster_stats is not None and cname in cluster_stats.index:
                     s = cluster_stats.loc[cname]
-                    st.metric("Win rate", f"{s.get('win_rate',0):.0f}%")
+                    st.metric("Taux de victoire", f"{s.get('win_rate',0):.0f}%")
                     st.caption(f"Poss. {s.get('avg_possession',0):.0f}% · Conv. {s.get('avg_conversion_rate',0):.0f}%")
                 if finalists_in:
-                    st.markdown(f"⭐ {', '.join(finalists_in)}")
-                st.caption(f"{len(teams_in)} " + ("équipes" if lang == "fr" else "teams"))
+                    st.markdown(f"⭐ **{', '.join(finalists_in)}**")
+                st.caption(f"{len(teams_in)} équipes")
 
 st.divider()
 
