@@ -47,8 +47,8 @@ _T: dict[str, dict[str, str]] = {
     # ── Analyse ─────────────────────────────────────────────────
     "analyse_title": {"fr": "Ce que les stats revelent",
                        "en": "What the stats reveal"},
-    "analyse_intro": {"fr": "L'equipe qui domine les statistiques gagne 62,9 % du temps. Pas toujours, donc. Et c'est la tout l'interet.",
-                       "en": "The statistically dominant team wins 62.9% of the time. Not always. That's exactly what makes this interesting."},
+    "analyse_intro": {"fr": "L'equipe qui domine les statistiques gagne un peu moins de deux fois sur trois. Pas toujours, donc. Et c'est la tout l'interet.",
+                       "en": "The statistically dominant team wins a little less than two times out of three. Not always. That's exactly what makes this interesting."},
     "analyse_dom_pct": {"fr": "Le dominant gagne",          "en": "Dominant team wins"},
     "analyse_on_N": {"fr": "sur {} matchs analysables",     "en": "out of {} analysable matches"},
     "analyse_surprises": {"fr": "Les 5 plus grands upsets du tournoi",

@@ -122,7 +122,7 @@ if cmp:
             va_fmt = f"{m['val_a']:.1f}{m['unit']}"
             vb_fmt = f"{m['val_b']:.1f}{m['unit']}"
             comp_data.append({ta: f"{adv_a} {va_fmt}", "Statistique": m["label"], tb: f"{vb_fmt} {adv_b}"})
-        st.dataframe(pd.DataFrame(comp_data), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(comp_data), width="stretch", hide_index=True)
 
     if ch:
         insight_card(
@@ -181,8 +181,12 @@ if cmp:
 
 scatter_df["is_finalist"] = scatter_df["team"].isin(finalist_teams)
 scatter_df["is_champion"] = scatter_df["team"] == (cmp["champion"] if cmp else "")
-scatter_df["symbol"] = scatter_df["is_finalist"].map({True: "star", False: "circle"})
-scatter_df["marker_size"] = scatter_df["wins"] * 4 + 8
+
+# On ne nomme que les equipes marquantes pour eviter le fouillis
+_top = set(scatter_df.nlargest(7, "goals_per_match")["team"])
+_ext = set(scatter_df.nlargest(2, "avg_possession")["team"]) | set(scatter_df.nsmallest(2, "avg_possession")["team"])
+_to_label = _top | _ext | finalist_teams
+scatter_df["show_label"] = scatter_df["team"].isin(_to_label)
 
 fig_s = go.Figure()
 # Non-finalistes
@@ -190,18 +194,19 @@ nf = scatter_df[~scatter_df["is_finalist"]]
 fig_s.add_trace(go.Scatter(
     x=nf["avg_possession"], y=nf["goals_per_match"],
     mode="markers+text",
-    text=nf["team"].str[:6],
+    text=[r["team"] if r["show_label"] else "" for _, r in nf.iterrows()],
     textposition="top center",
-    textfont=dict(size=8, color="#6b7280"),
+    textfont=dict(size=9, color="#334155"),
     marker=dict(
-        size=nf["wins"] * 3 + 6,
+        size=nf["wins"] * 3 + 7,
         color=nf["win_rate"],
         colorscale="RdYlGn",
         cmin=0, cmax=100,
-        opacity=0.7,
-        colorbar=dict(title="Win %", thickness=10),
+        opacity=0.8,
+        colorbar=dict(title="Victoires %", thickness=12),
     ),
-    hovertemplate="<b>%{text}</b><br>Poss: %{x:.0f}%<br>Buts/m: %{y:.1f}<extra></extra>",
+    hovertemplate="<b>%{customdata}</b><br>Possession : %{x:.0f}%<br>Buts/match : %{y:.1f}<extra></extra>",
+    customdata=nf["team"],
     name="Équipes",
     showlegend=False,
 ))
@@ -215,18 +220,18 @@ for _, row in scatter_df[scatter_df["is_finalist"]].iterrows():
         mode="markers+text",
         text=[label],
         textposition="top center",
-        textfont=dict(size=11, color=color, family="Arial Black"),
-        marker=dict(size=22, symbol="star", color=color, line=dict(color="white", width=1.5)),
+        textfont=dict(size=12, color="#1a1d23", family="Arial Black"),
+        marker=dict(size=22, symbol="star", color=color, line=dict(color="#1a1d23", width=1.5)),
         name=row["team"],
-        hovertemplate=f"<b>{row['team']}</b><br>Poss: {row['avg_possession']:.0f}%<br>Buts/m: {row['goals_per_match']:.1f}<br>Win rate: {row['win_rate']:.0f}%<extra></extra>",
+        hovertemplate=f"<b>{row['team']}</b><br>Possession : {row['avg_possession']:.0f}%<br>Buts/match : {row['goals_per_match']:.1f}<br>Victoires : {row['win_rate']:.0f}%<extra></extra>",
     ))
 
-fig_s.add_vline(x=50, line_dash="dot", line_color="#4b5563", annotation_text="50% possession")
+fig_s.add_vline(x=50, line_dash="dot", line_color="#94a3b8", annotation_text="50 %")
 fig_s.update_layout(
     xaxis_title="Possession moyenne (%)",
-    yaxis_title="Buts marqués / match",
+    yaxis_title="Buts marqués par match",
     template="simple_white",
-    height=480,
+    height=500,
     margin=dict(t=30, b=10),
     showlegend=True,
     legend=dict(orientation="h", yanchor="bottom", y=1.02),

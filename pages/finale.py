@@ -16,7 +16,7 @@ from src.ui import GREEN, RED, get_data, insight_card, render_sidebar, transpare
 
 st.set_page_config(page_title="La Finale", page_icon=":material/emoji_events:", layout="wide")
 df_raw, meta = get_data()
-lang = st.session_state.get("lang", "fr")
+lang = "fr"
 render_sidebar(meta)
 
 df = pd.read_csv("data/matches_2026.csv")

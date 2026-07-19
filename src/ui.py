@@ -133,44 +133,19 @@ def render_sidebar(meta: dict | None = None) -> None:
     """, unsafe_allow_html=True)
 
     with st.sidebar:
-        # ── Sélecteur de langue (FR / EN) ──────────────────────────
-        lang_choice = st.radio(
-            "🌐",
-            ["🇫🇷 Français", "🇬🇧 English"],
-            horizontal=True,
-            key="lang_radio",
-            label_visibility="collapsed",
+        st.markdown("## ⚽ CDM 2026 — Bilan Data")
+        n_str = str(meta["n_matches"]) if meta and meta.get("n_matches") else "104"
+        st.markdown(
+            f"**{n_str} matchs · 48 équipes**\n\n"
+            "*Les stats prédisent-elles le champion ?*"
         )
-        st.session_state["lang"] = "fr" if "Français" in lang_choice else "en"
-        lang = st.session_state["lang"]
-
-        st.divider()
-
-        # ── Titre & description ─────────────────────────────────────
-        if lang == "fr":
-            st.markdown("## ⚽ CDM 2026 — Bilan Data")
-            n_str = str(meta["n_matches"]) if meta and meta.get("n_matches") else "104"
-            st.markdown(
-                f"**{n_str} matchs · 48 équipes**\n\n"
-                "*Les stats prédisent-elles le champion ?*"
-            )
-        else:
-            st.markdown("## ⚽ WC 2026 — Data Recap")
-            n_str = str(meta["n_matches"]) if meta and meta.get("n_matches") else "104"
-            st.markdown(
-                f"**{n_str} matches · 48 teams**\n\n"
-                "*Does data predict the champion?*"
-            )
 
         st.divider()
 
         if meta and meta.get("n_matches"):
-            label_data = "Données au" if lang == "fr" else "Data at"
-            label_src = "Source" if lang == "fr" else "Source"
-            st.caption(f"🕒 {label_data} **{meta['last_updated_str']}**")
-            st.caption(f"📡 {label_src} : **{meta.get('source', '—')}**")
-            btn_label = "🔄 Rafraîchir" if lang == "fr" else "🔄 Refresh"
-            if st.button(btn_label, width="stretch"):
+            st.caption(f"🕒 Données au **{meta['last_updated_str']}**")
+            st.caption(f"📡 Source : **{meta.get('source', '—')}**")
+            if st.button("🔄 Rafraîchir", width="stretch"):
                 clear_cache()
                 st.rerun()
 

@@ -15,7 +15,7 @@ from src.ui import GREEN, get_data, insight_card, render_sidebar, transparency_b
 
 st.set_page_config(page_title="ADN & Modele", page_icon=":material/insights:", layout="wide")
 df_raw, meta = get_data()
-lang = st.session_state.get("lang", "fr")
+lang = "fr"
 render_sidebar(meta)
 
 st.title(t("adn_title", lang))
@@ -46,28 +46,36 @@ except Exception:
 
 scatter["is_finalist"] = scatter["team"].isin(finalist_teams)
 
+# On ne nomme que les equipes marquantes : finalistes + top 8 win rate + extremes possession
+champ = None
+if not df[df["round"] == "Final"].empty:
+    f = df[df["round"] == "Final"].iloc[0]
+    champ = f["home_team"] if f["winner"] == "home" else f["away_team"]
+
+top_wr = set(scatter.nlargest(8, "win_rate")["team"])
+extreme_poss = set(scatter.nlargest(2, "avg_possession")["team"]) | set(scatter.nsmallest(2, "avg_possession")["team"])
+to_label = top_wr | extreme_poss | finalist_teams
+scatter["show_label"] = scatter["team"].isin(to_label)
+
 fig_s = go.Figure()
-# Equipes normales
+# Equipes non nommees (points seuls, hover dispo)
 nf = scatter[~scatter["is_finalist"]]
 fig_s.add_trace(go.Scatter(
     x=nf["avg_possession"], y=nf["win_rate"],
     mode="markers+text",
-    text=nf["team"].str[:5],
+    text=[r["team"] if r["show_label"] else "" for _, r in nf.iterrows()],
     textposition="top center",
-    textfont=dict(size=7.5, color="#64748b"),
-    marker=dict(size=nf["goals_for"].clip(1) * 1.2 + 4,
+    textfont=dict(size=9, color="#334155"),
+    marker=dict(size=nf["goals_for"].clip(1) * 1.1 + 6,
                 color=nf["avg_conversion_rate"],
                 colorscale="RdYlGn", cmin=20, cmax=55,
-                opacity=0.75,
-                colorbar=dict(title="Conv. %", thickness=10, len=0.5)),
-    hovertemplate="<b>%{text}</b><br>Poss: %{x:.0f}%<br>Win: %{y:.0f}%<extra></extra>",
+                opacity=0.8,
+                colorbar=dict(title="Conversion %", thickness=12, len=0.6)),
+    hovertemplate="<b>%{customdata}</b><br>Possession : %{x:.0f}%<br>Victoires : %{y:.0f}%<extra></extra>",
+    customdata=nf["team"],
     showlegend=False,
 ))
 # Finalistes en etoile
-champ = None
-if not df[df["round"]=="Final"].empty:
-    f = df[df["round"]=="Final"].iloc[0]
-    champ = f["home_team"] if f["winner"]=="home" else f["away_team"]
 for _, r in scatter[scatter["is_finalist"]].iterrows():
     is_champ = r["team"] == champ
     color = "#FFD700" if is_champ else "#00B140"
@@ -77,20 +85,26 @@ for _, r in scatter[scatter["is_finalist"]].iterrows():
         mode="markers+text",
         text=[label],
         textposition="top center",
-        textfont=dict(size=11, color=color, family="Arial Black"),
-        marker=dict(size=20, symbol="star", color=color, line=dict(color="white", width=1.5)),
-        hovertemplate=f"<b>{r['team']}</b><br>Poss: {r['avg_possession']:.0f}%<br>Win: {r['win_rate']:.0f}%<extra></extra>",
+        textfont=dict(size=12, color="#1a1d23", family="Arial Black"),
+        marker=dict(size=22, symbol="star", color=color, line=dict(color="#1a1d23", width=1.5)),
+        hovertemplate=f"<b>{r['team']}</b><br>Possession : {r['avg_possession']:.0f}%<br>Victoires : {r['win_rate']:.0f}%<extra></extra>",
         name=r["team"],
     ))
 fig_s.add_vline(x=50, line_dash="dot", line_color="#94a3b8")
 fig_s.add_hline(y=50, line_dash="dot", line_color="#94a3b8")
 fig_s.update_layout(
-    xaxis_title=t("poss_label", lang) + " (%)",
-    yaxis_title=t("win_rate", lang) + " (%)",
-    template="simple_white", height=480, margin=dict(t=20, b=10),
+    xaxis_title="Possession moyenne (%)",
+    yaxis_title="Taux de victoire (%)",
+    template="simple_white", height=500, margin=dict(t=20, b=10),
     showlegend=len(finalist_teams) > 0,
+    legend=dict(orientation="h", yanchor="bottom", y=1.01),
 )
 st.plotly_chart(fig_s, width="stretch")
+st.caption(
+    "Chaque point est une équipe. En haut à droite : elles dominent le ballon "
+    "et gagnent. En haut à gauche : elles gagnent sans dominer (les pragmatiques). "
+    "Seules les équipes marquantes sont nommées, survolez les autres."
+)
 
 st.divider()
 

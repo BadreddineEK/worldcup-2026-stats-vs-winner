@@ -13,7 +13,7 @@ from src.xg import team_xg_summary
 
 st.set_page_config(page_title="Stats", page_icon=":material/analytics:", layout="wide")
 df_raw, meta = get_data()
-lang = st.session_state.get("lang", "fr")
+lang = "fr"
 render_sidebar(meta)
 
 st.title(t("analyse_title", lang))
@@ -32,33 +32,54 @@ with col_gauge:
     fig_g = go.Figure(go.Indicator(
         mode="gauge+number",
         value=pct or 0,
-        number={"suffix": "%", "font": {"size": 42}},
-        title={"text": t("analyse_dom_pct", lang), "font": {"size": 13}},
+        number={"suffix": " %", "font": {"size": 40}},
         gauge={
-            "axis": {"range": [0, 100]},
+            "axis": {"range": [0, 100], "tickwidth": 1},
             "bar": {"color": "#00B140" if (pct or 0) >= 60 else "#f39c12"},
             "steps": [{"range": [0, 50], "color": "#f1f5f9"}, {"range": [50, 100], "color": "#e8f5e9"}],
-            "threshold": {"line": {"color": "#64748b", "width": 2}, "value": 50},
+            "threshold": {"line": {"color": "#64748b", "width": 3}, "value": 50},
         },
     ))
-    fig_g.update_layout(height=220, margin=dict(t=30, b=0, l=20, r=20),
+    fig_g.update_layout(height=230, margin=dict(t=10, b=10, l=25, r=25),
                         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
     st.plotly_chart(fig_g, width="stretch")
+    st.caption("L'équipe qui domine les stats a gagné dans ce pourcentage des matchs.")
 with col_text:
-    st.markdown(f"### {pct}% des matchs — et ce n\'est pas la stat la plus intéressante" if lang == "fr"
-                else f"### {pct}% of matches — and this isn\'t the most interesting stat")
+    st.markdown(f"### {pct} % des matchs. Et ce n'est pas la statistique la plus intéressante.")
     st.markdown(
-        t("analyse_on_N", lang).format(summary["n_evaluables"])
-        + f" · **{summary['n_surprises']}** " + ("surprises" if lang == "fr" else "upsets")
+        f"Sur **{summary['n_evaluables']} matchs** avec un dominant clair, "
+        f"le dominant l'emporte {pct} % du temps. "
+        f"**{summary['n_surprises']} matchs** ont fini autrement."
     )
-    # Par stat
-    by_type = stat_agreement_by_type(df_raw)
-    if not by_type.empty:
-        st.caption("**Quelle stat prédit le mieux ?**" if lang == "fr" else "**Which stat predicts best?**")
-        for _, row in by_type.iterrows():
-            pct_stat = row["Taux (%)"]
-            bar = "█" * int(pct_stat / 10) + "░" * (10 - int(pct_stat / 10))
-            st.text(f"{row['Statistique']:20} {bar} {pct_stat:.0f}%")
+
+# ── QUELLE STAT PREDIT LE MIEUX ──────────────────────────────────────────────
+st.markdown("**Quand une équipe mène sur une stat, gagne-t-elle le match ?**")
+by_type = stat_agreement_by_type(df_raw)
+if not by_type.empty:
+    bt = by_type.sort_values("Taux (%)", ascending=True)
+    fig_bt = go.Figure(go.Bar(
+        x=bt["Taux (%)"], y=bt["Statistique"],
+        orientation="h",
+        marker_color=["#00B140" if v >= 60 else "#f59e0b" if v >= 50 else "#ef4444"
+                      for v in bt["Taux (%)"]],
+        text=[f"{v:.0f} %" for v in bt["Taux (%)"]],
+        textposition="outside",
+        cliponaxis=False,
+    ))
+    fig_bt.add_vline(x=50, line_dash="dot", line_color="#94a3b8",
+                     annotation_text="Hasard (50 %)", annotation_position="top")
+    fig_bt.update_layout(
+        xaxis_title="L'équipe qui mène cette stat gagne (%)",
+        xaxis_range=[0, 100],
+        template="simple_white",
+        height=230,
+        margin=dict(t=30, b=10, l=10, r=40),
+    )
+    st.plotly_chart(fig_bt, width="stretch")
+    st.caption(
+        "Les tirs cadrés sont le meilleur indicateur. La possession, elle, "
+        "ne dit presque rien du vainqueur."
+    )
 
 st.divider()
 
@@ -83,11 +104,10 @@ if not surprises.empty:
                 st.markdown(f"**{row['home_team']}** {score} **{row['away_team']}**")
                 st.caption(rnd)
             with cb:
-                adv_label = t("analyse_dominated", lang)
-                st.metric(adv_label, dom, f"+{diff:.0f}% " + t("analyse_poss_adv", lang))
+                st.metric("Dominait le jeu", dom, f"+{diff:.0f} % possession",
+                          delta_color="off")
             with cc:
-                win_label = t("analyse_winner", lang)
-                st.metric(win_label, win, "🔄")
+                st.metric("A gagné", win, delta_color="off")
 
 st.divider()
 
@@ -125,39 +145,53 @@ st.caption(t("analyse_xg_intro", lang))
 xg_sum = team_xg_summary(df)
 if not xg_sum.empty:
     plot_df = xg_sum[xg_sum["matches"] >= 3].copy()
+    max_v = max(plot_df["xg_total"].max(), plot_df["goals_total"].max()) + 1
     fig_xg = go.Figure()
-    fig_xg.add_shape(type="line", x0=0, y0=0, x1=plot_df["xg_total"].max()+2,
-                     y1=plot_df["xg_total"].max()+2, line=dict(color="#94a3b8", dash="dot"))
+    # Diagonale de reference
+    fig_xg.add_shape(type="line", x0=0, y0=0, x1=max_v, y1=max_v,
+                     line=dict(color="#94a3b8", dash="dot"))
+    fig_xg.add_annotation(x=max_v*0.82, y=max_v*0.9, text="Buts = attendus",
+                          showarrow=False, font=dict(size=10, color="#94a3b8"))
+    # On ne nomme que les equipes remarquables (sur/sous-performance nette)
+    plot_df["notable"] = plot_df["overperf_total"].abs() >= 1.5
     for _, r in plot_df.iterrows():
-        color = "#00B140" if r["overperf_total"] > 0.5 else "#ef4444" if r["overperf_total"] < -0.5 else "#64748b"
+        over = r["overperf_total"]
+        color = "#00B140" if over > 0.5 else "#ef4444" if over < -0.5 else "#94a3b8"
+        show_label = r["notable"]
         fig_xg.add_trace(go.Scatter(
             x=[r["xg_total"]], y=[r["goals_total"]],
-            mode="markers+text",
-            text=[r["team"][:7]], textposition="top center",
-            textfont=dict(size=8, color=color),
-            marker=dict(size=10, color=color, opacity=0.8),
-            hovertemplate=f"<b>{r['team']}</b><br>Buts: {r['goals_total']}<br>Attendus: {r['xg_total']:.1f}<br>Surperf: {r['overperf_total']:+.1f}<extra></extra>",
+            mode="markers+text" if show_label else "markers",
+            text=[r["team"]] if show_label else None,
+            textposition="top center",
+            textfont=dict(size=10, color=color),
+            marker=dict(size=13 if show_label else 9, color=color,
+                        opacity=0.9 if show_label else 0.55,
+                        line=dict(color="white", width=1) if show_label else None),
+            hovertemplate=f"<b>{r['team']}</b><br>Buts réels : {r['goals_total']}<br>Attendus : {r['xg_total']:.1f}<br>Écart : {over:+.1f}<extra></extra>",
             showlegend=False,
         ))
     fig_xg.update_layout(
-        xaxis_title="Buts attendus (proxy)" if lang == "fr" else "Expected goals (proxy)",
-        yaxis_title="Buts réels" if lang == "fr" else "Actual goals",
-        template="simple_white", height=400, margin=dict(t=20, b=10),
+        xaxis_title="Buts attendus (proxy — voir Transparence)",
+        yaxis_title="Buts réellement marqués",
+        template="simple_white", height=420, margin=dict(t=20, b=10),
     )
     st.plotly_chart(fig_xg, width="stretch")
+    st.caption(
+        "Au-dessus de la diagonale : l'équipe a marqué plus que ses tirs ne le "
+        "laissaient prévoir (réalisme ou chance). En dessous : maladresse ou malchance. "
+        "Seules les équipes les plus marquantes sont nommées."
+    )
     # Top lucky / unlucky
     c1, c2 = st.columns(2)
     with c1:
-        lucky = xg_sum.nlargest(3, "overperf_total")[["team","goals_total","xg_total","overperf_total"]]
-        lucky.columns = (["Équipe","Buts","Attendus","Surperf."] if lang == "fr"
-                         else ["Team","Goals","Expected","Over-perf."])
-        st.caption("🍀 **Les plus chanceux**" if lang == "fr" else "🍀 **Luckiest teams**")
-        st.dataframe(lucky, use_container_width=True, hide_index=True)
+        lucky = xg_sum.nlargest(3, "overperf_total")[["team","goals_total","xg_total","overperf_total"]].copy()
+        lucky.columns = ["Équipe", "Buts", "Attendus", "Écart"]
+        st.caption("🍀 **Ont marqué plus que prévu**")
+        st.dataframe(lucky, width="stretch", hide_index=True)
     with c2:
-        unlucky = xg_sum.nsmallest(3, "overperf_total")[["team","goals_total","xg_total","overperf_total"]]
-        unlucky.columns = (["Équipe","Buts","Attendus","Surperf."] if lang == "fr"
-                           else ["Team","Goals","Expected","Over-perf."])
-        st.caption("😬 **Les plus malchanceux**" if lang == "fr" else "😬 **Unluckiest teams**")
-        st.dataframe(unlucky, use_container_width=True, hide_index=True)
+        unlucky = xg_sum.nsmallest(3, "overperf_total")[["team","goals_total","xg_total","overperf_total"]].copy()
+        unlucky.columns = ["Équipe", "Buts", "Attendus", "Écart"]
+        st.caption("😬 **Ont marqué moins que prévu**")
+        st.dataframe(unlucky, width="stretch", hide_index=True)
 
-st.caption(f"{t('data_at', lang)} {meta['last_updated_str']} · {t('source_label', lang)} : The Stats Zone")
+st.caption(f"Données au {meta['last_updated_str']} · Source : The Stats Zone")

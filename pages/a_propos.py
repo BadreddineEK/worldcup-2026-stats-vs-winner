@@ -8,7 +8,7 @@ from src.ui import render_sidebar, get_data
 
 st.set_page_config(page_title="Transparence", page_icon=":material/info:", layout="centered")
 df_raw, meta = get_data()
-lang = st.session_state.get("lang", "fr")
+lang = "fr"
 render_sidebar(meta)
 
 if lang == "fr":
@@ -71,7 +71,7 @@ decisif ce soir.
 J'ai construit ce projet pendant le tournoi, en direct, pour plusieurs raisons.
 
 D'abord la curiosite : est-ce que les stats de match sont vraiment predictives ?
-La reponse, 62,9 %, m'a surpris dans les deux sens. C'est suffisant pour que
+La reponse, autour de 63 %, m'a surpris dans les deux sens. C'est suffisant pour que
 ca vaille la peine d'y regarder, pas assez pour predire avec certitude.
 
 Ensuite, c'est un terrain d'experimentation pratique. Scraping live, pipeline ETL
@@ -157,7 +157,7 @@ decisive goal tonight.
 I built this project during the tournament, in real time, for a few reasons.
 
 First, genuine curiosity: are match stats actually predictive? The answer,
-62.9%, surprised me in both directions. It is enough to be worth studying,
+around 63%, surprised me in both directions. It is enough to be worth studying,
 not enough to predict with confidence.
 
 Second, it is a practical experimentation space. Live scraping, ETL pipeline
