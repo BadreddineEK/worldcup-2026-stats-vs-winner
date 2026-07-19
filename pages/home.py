@@ -12,7 +12,7 @@ from src.team_analysis import build_team_profiles
 from src.ui import GREEN, RED, get_data, insight_card, render_sidebar, transparency_banner
 
 st.set_page_config(
-    page_title="CDM 2026 — Le Bilan Data",
+    page_title="CDM 2026, Bilan Data",
     page_icon="trophy",
     layout="wide",
 )
@@ -21,7 +21,7 @@ df, meta = get_data()
 render_sidebar(meta)
 
 # ── EN-TÊTE ──────────────────────────────────────────────────────────────────
-st.title("CDM 2026 — Le Bilan en données")
+st.title("CDM 2026, le bilan en données")
 
 summary = agreement_summary(df)
 pct = summary["pct_dominant_won"]
@@ -29,19 +29,19 @@ tp = build_team_profiles(df)
 
 col_hook, col_kpi = st.columns([3, 2])
 with col_hook:
-    st.markdown("### Ce que 104 matchs de données réelles révèlent")
+    st.markdown(f"### {meta['n_matches']} matchs analysés, ce que les chiffres racontent")
     st.markdown(
         "La Coupe du Monde 2026 est terminée. "
-        "**104 matchs · 48 équipes · 5 stats par match.** "
-        "Voici ce que les données ont vraiment dit — et là où le football "
-        "a défié les chiffres."
+        f"**{meta['n_matches']} matchs, 48 équipes, 5 statistiques par match.** "
+        "J'ai cherché ce que les données disent vraiment du football, "
+        "et les endroits où elles se sont trompées."
     )
     if pct is not None:
         color = GREEN if pct >= 60 else "#f39c12" if pct >= 50 else RED
         insight_card(
             f"<b>Bilan final :</b> l'équipe dominante a gagné <b>{pct}%</b> du temps "
             f"sur {summary['n_evaluables']} matchs analysables. "
-            f"<b>{summary['n_surprises']} matchs</b> ont défié les chiffres.",
+            f"<b>{summary['n_surprises']} matchs</b> ont fini autrement.",
             color,
         )
 
@@ -51,7 +51,7 @@ with col_kpi:
     c2.metric("Dominant gagne", f"{pct} %" if pct else "—")
     c3, c4 = st.columns(2)
     c3.metric("Surprises", summary["n_surprises"])
-    c4.metric("Modèle IA", "~79%", help="Accuracy cross-validation 5-fold.")
+    c4.metric("Modèle IA", "~81%", help="Accuracy en cross-validation 5-fold.")
 
 transparency_banner(meta, compact=True)
 
@@ -83,7 +83,7 @@ cmp = finalist_comparison(df)
 if cmp:
     ta, tb = cmp["team_a"], cmp["team_b"]
     ch = cmp["champion"]
-    title_str = f"Spain vs Argentina" if ch is None else f"Spain vs Argentina — Champion : {ch}"
+    title_str = f"Spain vs Argentina" if ch is None else f"Spain vs Argentina, champion : {ch}"
     st.subheader(f"Le choc final : {title_str}")
 
     col_fa, col_vs, col_fb = st.columns([5, 1, 5])
@@ -126,9 +126,9 @@ if cmp:
 
     if ch:
         insight_card(
-            f"<b>Champion CDM 2026 : {ch}</b> — "
-            + ("Défense légendaire (0.1 but concédé/m) et domination technique." if ch == "Spain"
-               else "Attaque de feu (2.7 buts/m) et réalisme clinique en finale."),
+            f"<b>Champion CDM 2026 : {ch}.</b> "
+            + ("Défense légendaire (0.1 but concédé par match) et domination technique." if ch == "Spain"
+               else "Attaque de feu (2.7 buts par match) et réalisme clinique en finale."),
             GREEN,
         )
     else:
@@ -276,7 +276,7 @@ st.divider()
 
 # ── TOP ÉQUIPES ───────────────────────────────────────────────────────────────
 st.subheader("Les 6 équipes les plus efficaces du tournoi")
-st.caption("Efficiency score = victoires / possession — qui a fait le plus avec le moins ? Données réelles.")
+st.caption("Efficiency score = victoires / possession. Qui a fait le plus avec le moins ? Données réelles.")
 
 top = tp[tp["matches"] >= 3].nlargest(6, "efficiency_score")
 top_list = list(top.iterrows())

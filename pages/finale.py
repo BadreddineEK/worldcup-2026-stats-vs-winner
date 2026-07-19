@@ -117,22 +117,18 @@ if not ra_row.empty and not rb_row.empty:
 
     fav = ta if pa > pb else tb
     if abs(pa - 0.5) < 0.05:
-        insight_card("Match ultra-serré selon les données — moins de 5pt d'écart." if lang == "fr"
-                     else "Data-wise, this is too close to call — less than 5pp gap.", "#f59e0b")
+        insight_card("Match tres serre selon les donnees, moins de 5 points d'ecart entre les deux.", "#f59e0b")
     else:
         insight_card(
-            (f"Le modèle avantage <b>{fav}</b> ({max(pa,pb)*100:.0f}%) "
-             f"sur la base de ses statistiques du tournoi. "
-             f"Spain : défense légendaire (0.1 but/m). Argentina : attaque de feu ({rb['goals_per_match']:.1f} buts/m)."
-             if lang == "fr"
-             else f"Model favours <b>{fav}</b> ({max(pa,pb)*100:.0f}%) "
-                  f"based on tournament stats. "
-                  f"Spain: legendary defence (0.1 goals/m). Argentina: lethal attack ({rb['goals_per_match']:.1f} goals/m)."),
+            f"Le modele avantage <b>{fav}</b> ({max(pa,pb)*100:.0f}%) "
+            f"sur la base de ses statistiques du tournoi. "
+            f"Spain, la meilleure defense (0.1 but concede par match). "
+            f"Argentina, l'attaque la plus prolifique ({rb['goals_per_match']:.1f} buts par match).",
             GREEN if max(pa, pb) > 0.6 else "#f59e0b",
         )
 
     # Radar
-    st.subheader("Comparaison radar" if lang == "fr" else "Radar comparison")
+    st.subheader("Comparaison radar")
     la, va = radar_data(ra, tp); lb, vb = radar_data(rb, tp)
     fig_r = go.Figure()
     for name, vals, color in [(ta, va, "#00B140"), (tb, vb, "#f59e0b")]:
@@ -163,18 +159,15 @@ st.divider()
 # ── BRACKET ───────────────────────────────────────────────────────────────────
 st.subheader(t("finale_bracket", lang))
 tab_live, tab_sim = st.tabs([
-    "Parcours réel" if lang == "fr" else "Real bracket",
-    "Et si les stats décidaient ?" if lang == "fr" else "What if stats decided?",
+    "Parcours reel",
+    "Et si les stats decidaient ?",
 ])
 with tab_live:
-    st.caption(("Vainqueurs réels — vert. TBD = à venir. Sur mobile : pincez pour zoomer."
-                if lang == "fr"
-                else "Real winners in green. TBD = upcoming. Mobile: pinch to zoom."))
+    st.caption("Vainqueurs reels en vert. TBD = a venir. Sur mobile, pincez pour zoomer.")
     fig_bracket = build_bracket_figure(df, year=2026)
     st.plotly_chart(fig_bracket, width="stretch")
 with tab_sim:
-    st.markdown("**Et si les stats dominantes avaient toujours décidé ?**" if lang == "fr"
-                else "**What if stats always decided the winner?**")
+    st.markdown("**Et si les stats dominantes avaient toujours decide ?**")
     sim = compute_simulated_winners(df)
     fig_sim = build_bracket_figure(df, year=2026, simulated_winners=sim)
     st.plotly_chart(fig_sim, width="stretch")

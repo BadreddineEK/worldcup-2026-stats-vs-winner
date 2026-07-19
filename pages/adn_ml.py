@@ -202,10 +202,8 @@ with c_acc:
 with c_insight:
     insight_card(t("adn_ml_finding", lang), "#f59e0b")
 
-# Feature importances — le graphique star du projet
-feat_labels = (["Diff. Tirs cadrés","Diff. Possession","Diff. Passes","Diff. Tirs","Diff. Corners"]
-               if lang == "fr"
-               else ["Shots on target diff.","Possession diff.","Passes diff.","Shots diff.","Corners diff."])
+# Feature importances : le graphique star du projet
+feat_labels = ["Diff. Tirs cadrés", "Diff. Possession", "Diff. Passes", "Diff. Tirs", "Diff. Corners"]
 coefs = pd.DataFrame({"Feature": feat_labels, "Coefficient": lr.coef_[0]}).sort_values("Coefficient", ascending=True)
 fig_c = go.Figure(go.Bar(
     x=coefs["Coefficient"], y=coefs["Feature"],
@@ -216,16 +214,14 @@ fig_c = go.Figure(go.Bar(
 ))
 fig_c.add_vline(x=0, line_color="#64748b")
 fig_c.update_layout(
-    xaxis_title="Coefficient (impact sur P(victoire))" if lang == "fr" else "Coefficient (impact on P(win))",
+    xaxis_title="Coefficient (impact sur P(victoire))",
     template="simple_white", height=280,
     margin=dict(t=10, b=10, l=10, r=60),
 )
 st.plotly_chart(fig_c, width="stretch")
 st.caption(
     "Un coefficient positif = dominer cette stat augmente les chances de gagner. "
-    "Tirs bruts négatif = tirer plus sans cadrer = perdre." if lang == "fr"
-    else "Positive = dominating this stat increases win probability. "
-         "Raw shots negative = shooting more without accuracy = losing."
+    "Tirs bruts négatif = tirer plus sans cadrer = perdre."
 )
 
 st.divider()
