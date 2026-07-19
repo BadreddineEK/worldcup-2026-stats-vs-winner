@@ -48,7 +48,7 @@ with tab_live:
     st.caption("Vainqueurs reels, matchs termines en vert. TBD = a venir. "
                "Sur mobile : pincez pour zoomer, glissez pour naviguer.")
     fig_real = build_bracket_figure(df, year=2026)
-    st.plotly_chart(fig_real, use_container_width=True)
+    st.plotly_chart(fig_real, width="stretch")
 
 with tab_sim:
     st.markdown(
@@ -72,7 +72,7 @@ with tab_sim:
             "#f39c12",
         )
     fig_sim = build_bracket_figure(df, year=2026, simulated_winners=sim)
-    st.plotly_chart(fig_sim, use_container_width=True)
+    st.plotly_chart(fig_sim, width="stretch")
 
 st.divider()
 
@@ -206,7 +206,7 @@ def prediction_clash():
                                         line_color=color, fillcolor=color, opacity=0.35))
     fig_r.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
                         template="simple_white", height=400, margin=dict(t=30, b=10))
-    st.plotly_chart(fig_r, use_container_width=True)
+    st.plotly_chart(fig_r, width="stretch")
 
     # Comparaison champions historiques
     st.subheader("Quel champion historique ressemblent-ils le plus ?")

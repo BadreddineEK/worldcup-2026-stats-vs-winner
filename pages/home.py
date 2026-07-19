@@ -231,7 +231,7 @@ fig_s.update_layout(
     showlegend=True,
     legend=dict(orientation="h", yanchor="bottom", y=1.02),
 )
-st.plotly_chart(fig_s, use_container_width=True)
+st.plotly_chart(fig_s, width="stretch")
 
 st.divider()
 
@@ -256,7 +256,7 @@ with col_left:
         ))
         fig.update_layout(template="simple_white", height=260,
                           margin=dict(t=10, b=0), yaxis_title="Matchs", showlegend=False)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
 with col_right:
     st.subheader("Résultats clés")
