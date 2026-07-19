@@ -25,10 +25,11 @@ st.set_page_config(page_title="Finale & Predictions", page_icon="trophy", layout
 df_raw, meta = get_data()
 render_sidebar(meta)
 
-st.title("La Finale en chiffres")
+st.title("La Finale — Spain vs Argentina")
 st.markdown(
-    "Bracket interactif — parcours reel, parcours simule selon les stats, "
-    "et prediction du champion pour la finale du **19 juillet 2026**."
+    "**Le choc de styles ultime.** Spain : 65% de possession, dominant technique. "
+    "Argentina : pragmatique clinique, 100% de victoires avant la finale. "
+    "Que disent les données du tournoi sur ce duel ?"
 )
 transparency_banner(meta, compact=True)
 

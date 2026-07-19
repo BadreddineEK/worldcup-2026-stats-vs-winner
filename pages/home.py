@@ -19,26 +19,26 @@ df, meta = get_data()
 render_sidebar(meta)
 
 # ── EN-TÊTE ──────────────────────────────────────────────────────────────────
-st.title("⚽ CDM 2026 — Data Lab")
+st.title("⚽ CDM 2026 — Le Bilan en données")
 
 summary = agreement_summary(df)
 pct = summary["pct_dominant_won"]
 
 col_hook, col_kpi = st.columns([3, 2])
 with col_hook:
-    st.markdown("### Les stats prédisent-elles le vainqueur ?")
+    st.markdown("### Ce que 104 matchs de données réelles révèlent")
     st.markdown(
-        "Pendant que la Coupe du Monde 2026 se joue "
-        "(11 juin → 19 juillet, USA · Mexique · Canada), "
-        "ce Data Lab confronte les **chiffres réels** de chaque match "
-        "au résultat final."
+        "La Coupe du Monde 2026 est terminée. "
+        "**104 matchs · 48 équipes · 5 stats par match.** "
+        "Voici ce que les données ont vraiment dit — et là où le football "
+        "a défié les chiffres."
     )
     if pct is not None:
         color = GREEN if pct >= 60 else "#f39c12" if pct >= 50 else RED
         insight_card(
-            f"<b>Réponse à date :</b> l'équipe dominante gagne <b>{pct}%</b> du temps "
+            f"<b>Bilan final :</b> l'équipe dominante a gagné <b>{pct}%</b> du temps "
             f"sur {summary['n_evaluables']} matchs analysables. "
-            f"Mais {summary['n_surprises']} matchs ont défié les chiffres.",
+            f"<b>{summary['n_surprises']} matchs</b> ont défié les chiffres — le football reste imprévisible.",
             color,
         )
 
@@ -61,9 +61,8 @@ c1, c2, c3, c4 = st.columns(4)
 with c1:
     st.markdown("#### 📊 Stats vs Résultats")
     st.markdown(
-        "Quelle stat prédit le mieux ? "
-        "Spoiler : ce n'est *pas* la possession — "
-        "c'est la **précision** des tirs."
+        "La stat qui prédit le mieux la victoire n'est **pas** la possession. "
+        "C'est la précision des tirs. Le modèle l'a confirmé."
     )
 with c2:
     st.markdown("#### 🎲 Surprises")
@@ -90,7 +89,7 @@ st.divider()
 col_left, col_right = st.columns([3, 2])
 
 with col_left:
-    st.subheader("📍 Avancement du tournoi")
+    st.subheader("📍 Bilan du tournoi")
     if not df.empty and "round" in df.columns:
         _order = {
             "Group": 0, "Round of 32": 1, "Round of 16": 2,
@@ -120,7 +119,7 @@ with col_left:
         st.plotly_chart(fig, width="stretch")
 
 with col_right:
-    st.subheader("🕹️ Derniers résultats")
+    st.subheader("🏁 Résultats clés")
     if not df.empty:
         for _, r in df.tail(5).iloc[::-1].iterrows():
             date = str(r["date"])[:10]
@@ -130,10 +129,10 @@ with col_right:
 st.divider()
 
 # ── TOP ÉQUIPES ───────────────────────────────────────────────────────────────
-st.subheader("🏆 Les 6 équipes les plus efficaces")
+st.subheader("🏆 Les 6 équipes les plus efficaces du tournoi")
 st.caption(
-    "Efficiency score = taux de victoire / possession moyenne. "
-    "Un score élevé = beaucoup de victoires sans forcément dominer le ballon."
+    "Efficiency score = victoires / possession — qui a fait le plus avec le moins ? "
+    "Le classement de tout le tournoi, données réelles."
 )
 
 top = tp[tp["matches"] >= 3].nlargest(6, "efficiency_score")

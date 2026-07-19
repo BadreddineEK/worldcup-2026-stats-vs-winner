@@ -21,7 +21,13 @@ st.set_page_config(page_title="Modèle IA", page_icon="🤖", layout="wide")
 df, meta = get_data()
 render_sidebar(meta)
 
-st.title("🤖 Modèle IA")
+st.title("🤖 Modèle IA — ce que les données avaient prévu")
+st.markdown(
+    "Une régression logistique entraînée sur les matchs du tournoi. "
+    "**79% d'accuracy en cross-validation.** "
+    "Et un résultat contre-intuitif confirmé par le tournoi : "
+    "les tirs bruts ont un **coefficient négatif**. La qualité prime la quantité."
+)
 st.markdown(
     "Une régression logistique entraînée sur **{} matchs réels**. "
     "79% d’accuracy en cross-validation. Et un résultat surprenant :"

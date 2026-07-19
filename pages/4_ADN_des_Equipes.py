@@ -20,10 +20,9 @@ render_sidebar(meta)
 
 st.title("🧬 ADN des équipes")
 st.markdown(
-    "Chaque équipe a un **style statistique** unique. "
-    "Norway gagne à 80% avec seulement 53% de possession. "
-    "Spain contrôle le ballon (65%) mais Spain n’est pas invincible. "
-    "**Les chiffres révèlent l’ADN de chaque camp mieux qu’un commentateur.**"
+    "Le bilan statistique complet des 48 équipes. "
+    "Qui a gagné sans dominer ? Qui a dominanté sans gagner ? "
+    "**Le profil du champion était-il écrit dans les chiffres ?**"
 )
 transparency_banner(meta, compact=True)
 

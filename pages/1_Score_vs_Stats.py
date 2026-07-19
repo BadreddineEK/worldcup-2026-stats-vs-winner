@@ -19,11 +19,10 @@ st.set_page_config(page_title="Score vs Stats", page_icon="📊", layout="wide")
 df, meta = get_data()
 render_sidebar(meta)
 
-st.title("📊 Stats vs Résultats")
+st.title("📊 Stats vs Résultats — le bilan")
 st.markdown(
-    "**La question centrale :** l’équipe qui domine la possession, qui tire plus, "
-    "qui cadre mieux — gagne-t-elle vraiment ? "
-    "Et quelle statistique prédit le mieux le résultat ?"
+    "**La question centrale du tournoi :** l'équipe qui domine les stats gagne-t-elle ?"
+    " Voici la réponse sur l'ensemble des 103+ matchs de la CDM 2026."
 )
 transparency_banner(meta, compact=True)
 

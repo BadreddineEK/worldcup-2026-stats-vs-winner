@@ -132,9 +132,9 @@ def render_sidebar(meta: dict | None = None) -> None:
         n_str = str(meta["n_matches"]) if meta and meta.get("n_matches") else "101"
         st.markdown(
             f"**{n_str} matchs réels · 48 équipes**\n\n"
-            "Un Data Lab qui répond à une seule question, "
-            "sous toutes ses facettes :\n\n"
-            "*Les statistiques de match prédisent-elles vraiment le vainqueur ?*"
+            "**Bilan complet de la CDM 2026.** "
+            "104 matchs · 48 équipes · ML · Data Viz.\n\n"
+            "*Les stats prédisent-elles le champion ?*"
         )
         st.divider()
         if meta and meta.get("n_matches"):
@@ -177,7 +177,7 @@ def transparency_banner(meta: dict, compact: bool = False) -> None:
         st.caption(
             f"📊 **{n} matchs joués** au {date_ref} · "
             f"Source : {meta['source']} · "
-            "L'analyse est bornée aux matchs **terminés** uniquement."
+            "Bilan **complet** du tournoi (sauf finale si en cours)."
         )
         return
 
