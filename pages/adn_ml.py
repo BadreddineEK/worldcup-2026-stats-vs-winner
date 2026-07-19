@@ -203,7 +203,8 @@ with c_insight:
     insight_card(t("adn_ml_finding", lang), "#f59e0b")
 
 # Feature importances : le graphique star du projet
-feat_labels = ["Diff. Tirs cadrés", "Diff. Possession", "Diff. Passes", "Diff. Tirs", "Diff. Corners"]
+# Ordre STRICTEMENT aligne sur FEATS = [poss_diff, shots_diff, sot_diff, passes_diff, corners_diff]
+feat_labels = ["Diff. Possession", "Diff. Tirs", "Diff. Tirs cadrés", "Diff. Passes", "Diff. Corners"]
 coefs = pd.DataFrame({"Feature": feat_labels, "Coefficient": lr.coef_[0]}).sort_values("Coefficient", ascending=True)
 fig_c = go.Figure(go.Bar(
     x=coefs["Coefficient"], y=coefs["Feature"],
