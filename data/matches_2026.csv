@@ -49,8 +49,8 @@ fixture_id,date,round,status,home_team,away_team,home_goals,away_goals,winner,ho
 191822,2026-06-24T03:00:00+01:00,Group K,FT,Colombia,Congo DR,1,0,home,64.0,36.0,20.0,7.0,9.0,1.0,541.0,299.0,5.0,4.0,TheStatsZone
 191864,2026-06-24T20:00:00+01:00,Group B,FT,Switzerland,Canada,2,1,home,55.0,45.0,6.0,13.0,4.0,7.0,443.0,339.0,2.0,7.0,TheStatsZone
 191844,2026-06-24T20:00:00+01:00,Group B,FT,Bosnia and Herzegovina,Qatar,3,1,home,54.0,46.0,14.0,9.0,5.0,3.0,515.0,434.0,5.0,5.0,TheStatsZone
-191856,2026-06-24T23:00:00+01:00,Group C,FT,Morocco,Haiti,4,2,home,69.0,31.0,22.0,9.0,11.0,2.0,541.0,247.0,9.0,1.0,TheStatsZone
 191866,2026-06-24T23:00:00+01:00,Group C,FT,Scotland,Brazil,0,3,away,46.0,54.0,14.0,21.0,5.0,9.0,499.0,606.0,7.0,6.0,TheStatsZone
+191856,2026-06-24T23:00:00+01:00,Group C,FT,Morocco,Haiti,4,2,home,69.0,31.0,22.0,9.0,11.0,2.0,541.0,247.0,9.0,1.0,TheStatsZone
 191854,2026-06-25T02:00:00+01:00,Group A,FT,Czechia,Mexico,0,3,away,52.0,48.0,13.0,11.0,1.0,5.0,398.0,386.0,5.0,1.0,TheStatsZone
 191878,2026-06-25T02:00:00+01:00,Group A,FT,South Africa,Korea Republic,1,0,home,32.0,68.0,13.0,8.0,4.0,3.0,340.0,719.0,4.0,6.0,TheStatsZone
 191842,2026-06-25T21:00:00+01:00,Group E,FT,Ecuador,Germany,2,1,home,39.0,61.0,7.0,11.0,3.0,3.0,378.0,592.0,3.0,2.0,TheStatsZone
@@ -61,8 +61,8 @@ fixture_id,date,round,status,home_team,away_team,home_goals,away_goals,winner,ho
 191860,2026-06-26T03:00:00+01:00,Group D,FT,Paraguay,Australia,0,0,draw,44.0,56.0,7.0,12.0,2.0,5.0,426.0,537.0,1.0,3.0,TheStatsZone
 191876,2026-06-26T20:00:00+01:00,Group I,FT,Norway,France,1,4,away,43.0,57.0,10.0,18.0,4.0,9.0,421.0,555.0,4.0,5.0,TheStatsZone
 191886,2026-06-26T20:00:00+01:00,Group I,FT,Senegal,Iraq,5,0,home,69.0,31.0,28.0,6.0,12.0,1.0,590.0,266.0,12.0,3.0,TheStatsZone
-191840,2026-06-27T01:00:00+01:00,Group H,FT,Uruguay,Spain,0,1,away,33.0,67.0,5.0,6.0,1.0,1.0,301.0,622.0,1.0,6.0,TheStatsZone
 191858,2026-06-27T01:00:00+01:00,Group H,FT,Cabo Verde,Saudi Arabia,0,0,draw,51.0,49.0,15.0,7.0,2.0,3.0,451.0,444.0,4.0,2.0,TheStatsZone
+191840,2026-06-27T01:00:00+01:00,Group H,FT,Uruguay,Spain,0,1,away,33.0,67.0,5.0,6.0,1.0,1.0,301.0,622.0,1.0,6.0,TheStatsZone
 191850,2026-06-27T04:00:00+01:00,Group G,FT,Egypt,IR Iran,1,1,draw,61.0,39.0,15.0,13.0,3.0,4.0,589.0,367.0,8.0,2.0,TheStatsZone
 191868,2026-06-27T04:00:00+01:00,Group G,FT,New Zealand,Belgium,1,5,away,46.0,54.0,6.0,35.0,2.0,10.0,436.0,525.0,5.0,8.0,TheStatsZone
 191846,2026-06-27T22:00:00+01:00,Group L,FT,Panama,England,0,2,away,33.0,67.0,13.0,17.0,2.0,6.0,268.0,558.0,3.0,7.0,TheStatsZone
@@ -102,3 +102,4 @@ fixture_id,date,round,status,home_team,away_team,home_goals,away_goals,winner,ho
 191946,2026-07-14T20:00:00+01:00,Semi-finals,FT,France,Spain,0,2,away,49.0,51.0,10.0,10.0,3.0,2.0,472.0,500.0,7.0,1.0,TheStatsZone
 191944,2026-07-15T20:00:00+01:00,Semi-finals,FT,England,Argentina,1,2,away,,,,,,,,,,,TheStatsZone
 191948,2026-07-18T22:00:00+01:00,3rd Place Final,FT,France,England,4,6,away,,,,,,,,,,,TheStatsZone
+191950,2026-07-19T20:00:00+01:00,Final,AET,Spain,Argentina,1,0,home,68.0,32.0,20.0,3.0,11.0,0.0,803.0,445.0,9.0,4.0,Manuel (officiel FIFA)

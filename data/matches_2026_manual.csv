@@ -1,1 +1,2 @@
 fixture_id,date,round,status,home_team,away_team,home_goals,away_goals,winner,home_possession,away_possession,home_shots,away_shots,home_shots_on_target,away_shots_on_target,home_passes,away_passes,home_corners,away_corners,source
+191950,2026-07-19T20:00:00+01:00,Final,AET,Spain,Argentina,1,0,home,68.0,32.0,20.0,3.0,11.0,0.0,803.0,445.0,9.0,4.0,Manuel (officiel FIFA)

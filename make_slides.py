@@ -31,7 +31,7 @@ GREY = "#64748b"
 BG = "#ffffff"
 OUT = Path("slides")
 OUT.mkdir(exist_ok=True)
-FOOTER = "Badreddine EK   ·   Python · scikit-learn · Streamlit   ·   Donnees reelles, 103 matchs"
+FOOTER = "Badreddine EK   ·   Python · scikit-learn · Streamlit   ·   Donnees reelles"
 
 plt.rcParams["font.family"] = "DejaVu Sans"
 
@@ -65,7 +65,10 @@ def save(fig, name):
 
 # ══════════════════════════════════════════════════════════════════════════════
 def main():
+    global FOOTER
     df_raw, meta = load_matches()
+    FOOTER = (f"Badreddine EK   ·   Python · scikit-learn · Streamlit   ·   "
+              f"{meta['n_matches']} matchs reels")
     ann = annotate_matches(df_raw)
     summ = agreement_summary(ann)
     pct = summ["pct_dominant_won"]
@@ -94,7 +97,7 @@ def main():
     # ── SLIDE 1 : le chiffre choc ────────────────────────────────────────────
     fig = new_slide()
     header(fig, "Les stats predisent-elles le vainqueur ?",
-           "Mondial 2026  ·  analyse des 103 matchs")
+           f"Mondial 2026  ·  analyse des {meta['n_matches']} matchs")
     fig.text(0.5, 0.60, f"{pct:.0f}%", ha="center", va="center",
              fontsize=170, color=GREEN, fontweight="bold")
     fig.text(0.5, 0.415, "des matchs remportes par l'equipe\nqui domine les statistiques",
@@ -132,24 +135,23 @@ def main():
              ha="center", fontsize=15, color=GREY)
     save(fig, "slide_2_modele.png")
 
-    # ── SLIDE 3 : face-a-face de la finale ───────────────────────────────────
+    # ── SLIDE 3 : le resultat de la finale ────────────────────────────────────
     ARG = "#75AADB"  # bleu ciel Argentine
-    prof = tp.set_index("team")
-    s = prof.loc["Spain"]
-    a = prof.loc["Argentina"]
+    fr = fin.iloc[0]  # ligne Final (Spain home, Argentina away)
     metrics = [
-        ("Buts marques / match",   s["goals_per_match"],     a["goals_per_match"],     "{:.2f}"),
-        ("Buts encaisses / match", s["conceded_per_match"],  a["conceded_per_match"],  "{:.2f}"),
-        ("Possession moyenne",     s["avg_possession"],      a["avg_possession"],      "{:.0f}%"),
-        ("Taux de victoire",       s["win_rate"],            a["win_rate"],            "{:.0f}%"),
+        ("Possession",   fr["home_possession"],       fr["away_possession"],       "{:.0f}%"),
+        ("Tirs",         fr["home_shots"],             fr["away_shots"],             "{:.0f}"),
+        ("Tirs cadres",  fr["home_shots_on_target"],  fr["away_shots_on_target"],  "{:.0f}"),
+        ("Corners",      fr["home_corners"],           fr["away_corners"],           "{:.0f}"),
     ]
 
     fig = new_slide()
-    header(fig, "La finale : Spain vs Argentina", "Le choc du 19 juillet  ·  stats du tournoi")
+    header(fig, "Spain, championne du monde 2026", "Finale  ·  Spain 1 - 0 Argentina (a.p.)")
     fig.text(0.28, 0.775, "SPAIN", ha="center", fontsize=26, color=GREEN, fontweight="bold")
+    fig.text(0.28, 0.742, "★ CHAMPIONNE", ha="center", fontsize=16, color=GOLD, fontweight="bold")
     fig.text(0.72, 0.775, "ARGENTINA", ha="center", fontsize=26, color=ARG, fontweight="bold")
 
-    ax = fig.add_axes([0.06, 0.25, 0.88, 0.50])
+    ax = fig.add_axes([0.06, 0.25, 0.88, 0.48])
     ax.set_xlim(-1.32, 1.32)
     ax.set_ylim(-0.6, len(metrics) - 0.35)
     ax.axvline(0, color="#d8dee6", lw=1.2, zorder=1)
@@ -157,17 +159,18 @@ def main():
         y = len(metrics) - 1 - i
         m = max(sv, av, 0.01)
         ax.barh(y, -sv / m, height=0.46, color=GREEN, zorder=2)
-        ax.barh(y, av / m, height=0.46, color=ARG, zorder=2)
+        if av > 0:
+            ax.barh(y, av / m, height=0.46, color=ARG, zorder=2)
         ax.text(0, y + 0.40, name, ha="center", va="bottom", fontsize=15, color=DARK)
         ax.text(-sv / m - 0.04, y, fmt.format(sv), ha="right", va="center",
                 fontsize=17, color=GREEN, fontweight="bold")
-        ax.text(av / m + 0.04, y, fmt.format(av), ha="left", va="center",
-                fontsize=17, color="#2b7ab5", fontweight="bold")
+        ax.text((av / m + 0.04) if av > 0 else 0.04, y, fmt.format(av), ha="left",
+                va="center", fontsize=17, color="#2b7ab5", fontweight="bold")
     ax.axis("off")
 
-    fig.text(0.5, 0.185, "Spain, la meilleure defense du tournoi : 0.1 but encaisse par match.",
-             ha="center", fontsize=17, color=DARK, fontweight="bold")
-    fig.text(0.5, 0.150, "Argentina, la meilleure attaque : 2.7 buts par match, 100% de victoires.",
+    fig.text(0.5, 0.185, "11 tirs cadres a 0. Une demonstration statistique en finale.",
+             ha="center", fontsize=18, color=DARK, fontweight="bold")
+    fig.text(0.5, 0.150, "Mon modele l'annoncait : dominer les tirs cadres, c'est gagner.",
              ha="center", fontsize=16, color=GREY)
     save(fig, "slide_3_finale.png")
 
