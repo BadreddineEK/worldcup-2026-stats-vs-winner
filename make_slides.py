@@ -97,42 +97,42 @@ def main():
     # ── SLIDE 1 : le chiffre choc ────────────────────────────────────────────
     fig = new_slide()
     header(fig, "Les stats prédisent-elles le vainqueur ?",
-           f"Mondial 2026  ·  analyse des {meta['n_matches']} matchs")
+           f"Coupe du Monde 2026  ·  {meta['n_matches']} matchs analysés")
     fig.text(0.5, 0.60, f"{pct:.0f}%", ha="center", va="center",
              fontsize=170, color=GREEN, fontweight="bold")
-    fig.text(0.5, 0.415, "des matchs remportés par l'équipe\nqui domine les statistiques",
-             ha="center", va="center", fontsize=25, color=DARK)
-    fig.text(0.5, 0.30, "2 fois sur 3. Pas plus.", ha="center", va="center",
+    fig.text(0.5, 0.42, "des matchs sont gagnés par l'équipe\nqui domine les statistiques",
+             ha="center", va="center", fontsize=26, color=DARK)
+    fig.text(0.5, 0.30, "Soit 2 fois sur 3, pas plus.", ha="center", va="center",
              fontsize=30, color=DARK, fontweight="bold")
-    fig.text(0.5, 0.20, f"Sur {n_eval} matchs à dominant clair du tournoi",
-             ha="center", va="center", fontsize=18, color=GREY)
+    fig.text(0.5, 0.20, "Une fois sur trois, le favori des stats perd.",
+             ha="center", va="center", fontsize=19, color=GREY)
     save(fig, "slide_1_accord.png")
 
-    # ── SLIDE 2 : feature importance ─────────────────────────────────────────
+    # ── SLIDE 2 : quelles stats font gagner ──────────────────────────────────
     # Ordre STRICTEMENT aligne sur FEATS = [poss_diff, shots_diff, sot_diff, passes_diff, corners_diff]
-    labels = ["Diff. Possession", "Diff. Tirs", "Diff. Tirs cadrés",
-              "Diff. Passes", "Diff. Corners"]
+    labels = ["Possession", "Tirs", "Tirs cadrés", "Passes", "Corners"]
     coefs = pd.DataFrame({"f": labels, "c": lr.coef_[0]}).sort_values("c")
     fig = new_slide()
-    header(fig, "Ce que le modèle a vraiment appris", "Et ça prend à contre-pied")
-    ax = fig.add_axes([0.30, 0.30, 0.62, 0.48])
+    header(fig, "Quelles stats font gagner un match ?", "Ce qui compte, et ce qui compte moins")
+    ax = fig.add_axes([0.26, 0.34, 0.66, 0.42])
     colors = [GREEN if v > 0 else RED for v in coefs["c"]]
     ax.barh(coefs["f"], coefs["c"], color=colors)
     ax.axvline(0, color=GREY, lw=1)
-    for spine in ["top", "right", "left"]:
+    for spine in ["top", "right", "left", "bottom"]:
         ax.spines[spine].set_visible(False)
-    ax.tick_params(axis="y", labelsize=18, length=0)
-    ax.tick_params(axis="x", labelsize=13, colors=GREY)
+    ax.tick_params(axis="y", labelsize=19, length=0)
+    ax.set_xticks([])
     for v, name in zip(coefs["c"], coefs["f"]):
-        ax.text(v + (0.05 if v > 0 else -0.05), name, f"{v:+.2f}",
+        ax.text(v + (0.06 if v > 0 else -0.06), name, f"{v:+.1f}",
                 va="center", ha="left" if v > 0 else "right",
-                fontsize=16, color=DARK, fontweight="bold")
-    ax.set_xlim(coefs["c"].min() - 0.6, coefs["c"].max() + 0.6)
-    ax.set_xlabel("Impact sur la probabilité de gagner", fontsize=15, color=DARK)
-    fig.text(0.5, 0.19, "La possession compte peu. Tirer beaucoup, sans cadrer, fait même perdre.",
+                fontsize=15, color=DARK, fontweight="bold")
+    ax.set_xlim(coefs["c"].min() - 0.7, coefs["c"].max() + 0.7)
+    fig.text(0.37, 0.30, "← fait perdre", ha="center", fontsize=16, color=RED, fontweight="bold")
+    fig.text(0.72, 0.30, "fait gagner →", ha="center", fontsize=16, color=GREEN, fontweight="bold")
+    fig.text(0.5, 0.185, "La possession compte peu. Tirer beaucoup, sans cadrer, fait même perdre.",
              ha="center", fontsize=17, color=DARK, fontweight="bold")
-    fig.text(0.5, 0.145, f"Seule la précision (tirs cadrés) prédit la victoire  ·  précision {acc*100:.0f}%",
-             ha="center", fontsize=15, color=GREY)
+    fig.text(0.5, 0.145, "La stat qui annonce le mieux une victoire : les tirs cadrés.",
+             ha="center", fontsize=16, color=GREY)
     save(fig, "slide_2_modele.png")
 
     # ── SLIDE 3 : le resultat de la finale ────────────────────────────────────
@@ -146,10 +146,10 @@ def main():
     ]
 
     fig = new_slide()
-    header(fig, "Spain, championne du monde 2026", "Finale  ·  Spain 1 - 0 Argentina (a.p.)")
-    fig.text(0.28, 0.775, "SPAIN", ha="center", fontsize=26, color=GREEN, fontweight="bold")
+    header(fig, "L'Espagne, championne du monde 2026", "Finale  ·  Espagne 1 - 0 Argentine (après prolongation)")
+    fig.text(0.28, 0.775, "ESPAGNE", ha="center", fontsize=26, color=GREEN, fontweight="bold")
     fig.text(0.28, 0.742, "★ CHAMPIONNE", ha="center", fontsize=16, color=GOLD, fontweight="bold")
-    fig.text(0.72, 0.775, "ARGENTINA", ha="center", fontsize=26, color=ARG, fontweight="bold")
+    fig.text(0.72, 0.775, "ARGENTINE", ha="center", fontsize=26, color=ARG, fontweight="bold")
 
     ax = fig.add_axes([0.06, 0.25, 0.88, 0.48])
     ax.set_xlim(-1.32, 1.32)
