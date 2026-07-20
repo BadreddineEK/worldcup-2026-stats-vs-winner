@@ -31,7 +31,7 @@ GREY = "#64748b"
 BG = "#ffffff"
 OUT = Path("slides")
 OUT.mkdir(exist_ok=True)
-FOOTER = "Badreddine EK   ·   Python · scikit-learn · Streamlit   ·   Donnees reelles"
+FOOTER = "Badreddine EK   ·   Python · scikit-learn · Streamlit   ·   Données réelles"
 
 plt.rcParams["font.family"] = "DejaVu Sans"
 
@@ -68,7 +68,7 @@ def main():
     global FOOTER
     df_raw, meta = load_matches()
     FOOTER = (f"Badreddine EK   ·   Python · scikit-learn · Streamlit   ·   "
-              f"{meta['n_matches']} matchs reels")
+              f"{meta['n_matches']} matchs réels")
     ann = annotate_matches(df_raw)
     summ = agreement_summary(ann)
     pct = summ["pct_dominant_won"]
@@ -96,25 +96,25 @@ def main():
 
     # ── SLIDE 1 : le chiffre choc ────────────────────────────────────────────
     fig = new_slide()
-    header(fig, "Les stats predisent-elles le vainqueur ?",
+    header(fig, "Les stats prédisent-elles le vainqueur ?",
            f"Mondial 2026  ·  analyse des {meta['n_matches']} matchs")
     fig.text(0.5, 0.60, f"{pct:.0f}%", ha="center", va="center",
              fontsize=170, color=GREEN, fontweight="bold")
-    fig.text(0.5, 0.415, "des matchs remportes par l'equipe\nqui domine les statistiques",
+    fig.text(0.5, 0.415, "des matchs remportés par l'équipe\nqui domine les statistiques",
              ha="center", va="center", fontsize=25, color=DARK)
     fig.text(0.5, 0.30, "2 fois sur 3. Pas plus.", ha="center", va="center",
              fontsize=30, color=DARK, fontweight="bold")
-    fig.text(0.5, 0.20, f"Sur {n_eval} matchs a dominant clair du tournoi",
+    fig.text(0.5, 0.20, f"Sur {n_eval} matchs à dominant clair du tournoi",
              ha="center", va="center", fontsize=18, color=GREY)
     save(fig, "slide_1_accord.png")
 
     # ── SLIDE 2 : feature importance ─────────────────────────────────────────
     # Ordre STRICTEMENT aligne sur FEATS = [poss_diff, shots_diff, sot_diff, passes_diff, corners_diff]
-    labels = ["Diff. Possession", "Diff. Tirs", "Diff. Tirs cadres",
+    labels = ["Diff. Possession", "Diff. Tirs", "Diff. Tirs cadrés",
               "Diff. Passes", "Diff. Corners"]
     coefs = pd.DataFrame({"f": labels, "c": lr.coef_[0]}).sort_values("c")
     fig = new_slide()
-    header(fig, "Ce qui predit vraiment une victoire", "Ce que le modele a appris")
+    header(fig, "Ce que le modèle a vraiment appris", "Et ça prend à contre-pied")
     ax = fig.add_axes([0.30, 0.30, 0.62, 0.48])
     colors = [GREEN if v > 0 else RED for v in coefs["c"]]
     ax.barh(coefs["f"], coefs["c"], color=colors)
@@ -128,10 +128,10 @@ def main():
                 va="center", ha="left" if v > 0 else "right",
                 fontsize=16, color=DARK, fontweight="bold")
     ax.set_xlim(coefs["c"].min() - 0.6, coefs["c"].max() + 0.6)
-    ax.set_xlabel("Impact sur la probabilite de gagner", fontsize=15, color=DARK)
-    fig.text(0.5, 0.19, "Cadrer ses tirs compte le plus. Tirer beaucoup sans cadrer fait perdre.",
-             ha="center", fontsize=18, color=DARK, fontweight="bold")
-    fig.text(0.5, 0.145, f"Regression logistique  ·  precision {acc*100:.0f}%  (validation croisee 5 blocs)",
+    ax.set_xlabel("Impact sur la probabilité de gagner", fontsize=15, color=DARK)
+    fig.text(0.5, 0.19, "La possession compte peu. Tirer beaucoup, sans cadrer, fait même perdre.",
+             ha="center", fontsize=17, color=DARK, fontweight="bold")
+    fig.text(0.5, 0.145, f"Seule la précision (tirs cadrés) prédit la victoire  ·  précision {acc*100:.0f}%",
              ha="center", fontsize=15, color=GREY)
     save(fig, "slide_2_modele.png")
 
@@ -141,7 +141,7 @@ def main():
     metrics = [
         ("Possession",   fr["home_possession"],       fr["away_possession"],       "{:.0f}%"),
         ("Tirs",         fr["home_shots"],             fr["away_shots"],             "{:.0f}"),
-        ("Tirs cadres",  fr["home_shots_on_target"],  fr["away_shots_on_target"],  "{:.0f}"),
+        ("Tirs cadrés",  fr["home_shots_on_target"],  fr["away_shots_on_target"],  "{:.0f}"),
         ("Corners",      fr["home_corners"],           fr["away_corners"],           "{:.0f}"),
     ]
 
@@ -168,9 +168,9 @@ def main():
                 va="center", fontsize=17, color="#2b7ab5", fontweight="bold")
     ax.axis("off")
 
-    fig.text(0.5, 0.185, "11 tirs cadres a 0. Une demonstration statistique en finale.",
+    fig.text(0.5, 0.185, "11 tirs cadrés à 0. Une démonstration de précision en finale.",
              ha="center", fontsize=18, color=DARK, fontweight="bold")
-    fig.text(0.5, 0.150, "Mon modele l'annoncait : dominer les tirs cadres, c'est gagner.",
+    fig.text(0.5, 0.150, "La précision, pas le volume. Exactement ce que le modèle avait identifié.",
              ha="center", fontsize=16, color=GREY)
     save(fig, "slide_3_finale.png")
 

@@ -117,12 +117,12 @@ if not ra_row.empty and not rb_row.empty:
 
     fav = ta if pa > pb else tb
     if abs(pa - 0.5) < 0.05:
-        insight_card("Match tres serre selon les donnees, moins de 5 points d'ecart entre les deux.", "#f59e0b")
+        insight_card("Match très serré selon les données, moins de 5 points d'écart entre les deux.", "#f59e0b")
     else:
         insight_card(
-            f"Le modele avantage <b>{fav}</b> ({max(pa,pb)*100:.0f}%) "
+            f"Le modèle avantage <b>{fav}</b> ({max(pa,pb)*100:.0f}%) "
             f"sur la base de ses statistiques du tournoi. "
-            f"Spain, la meilleure defense (0.1 but concede par match). "
+            f"Spain, la meilleure défense (0.1 but concédé par match). "
             f"Argentina, l'attaque la plus prolifique ({rb['goals_per_match']:.1f} buts par match).",
             GREEN if max(pa, pb) > 0.6 else "#f59e0b",
         )
@@ -159,15 +159,15 @@ st.divider()
 # ── BRACKET ───────────────────────────────────────────────────────────────────
 st.subheader(t("finale_bracket", lang))
 tab_live, tab_sim = st.tabs([
-    "Parcours reel",
-    "Et si les stats decidaient ?",
+    "Parcours réel",
+    "Et si les stats décidaient ?",
 ])
 with tab_live:
-    st.caption("Vainqueurs reels en vert. TBD = a venir. Sur mobile, pincez pour zoomer.")
+    st.caption("Vainqueurs réels en vert. TBD = à venir. Sur mobile, pincez pour zoomer.")
     fig_bracket = build_bracket_figure(df, year=2026)
     st.plotly_chart(fig_bracket, width="stretch")
 with tab_sim:
-    st.markdown("**Et si les stats dominantes avaient toujours decide ?**")
+    st.markdown("**Et si les stats dominantes avaient toujours décidé ?**")
     sim = compute_simulated_winners(df)
     fig_sim = build_bracket_figure(df, year=2026, simulated_winners=sim)
     st.plotly_chart(fig_sim, width="stretch")

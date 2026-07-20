@@ -14,86 +14,86 @@ render_sidebar(meta)
 if lang == "fr":
     st.title("Ce projet en toute transparence")
     st.markdown(
-        "Avant de parcourir l'app, voici ce que j'aurais dit a chacun d'entre vous "
-        "si on s'etait assis ensemble autour des donnees."
+        "Avant de parcourir l'app, voici ce que j'aurais dit à chacun d'entre vous "
+        "si on s'était assis ensemble autour des données."
     )
     st.divider()
 
     with st.expander("Aux statisticiens et data scientists seniors", expanded=True):
         st.markdown("""
-Je sais que ce modele est simple. 104 matchs, 5 variables, regression logistique.
-C'est un choix assume, pas une ignorance.
+Je sais que ce modèle est simple. 104 matchs, 5 variables, régression logistique.
+C'est un choix assumé, pas une ignorance.
 
-Avec 194 observations et des features correlees (possession et passes vont ensemble),
-l'intervalle de confiance sur les 79 % d'accuracy est large. Un modele plus complexe
-serait moins interpretable et probablement en overfit sur ce volume de donnees.
+Avec 194 observations et des features corrélées (possession et passes vont ensemble),
+l'intervalle de confiance sur les 81 % d'accuracy est large. Un modèle plus complexe
+serait moins interprétable et probablement en overfit sur ce volume de données.
 
-Ce que j'aurais fait avec plus de donnees et de temps :
-regression avec regularisation L2 ajustee, SHAP values, features de position des tirs
-(vrai xG depuis StatsBomb ou Opta), donnees historiques sur plusieurs tournois.
+Ce que j'aurais fait avec plus de données et de temps :
+régression avec régularisation L2 ajustée, SHAP values, features de position des tirs
+(vrai xG depuis StatsBomb ou Opta), données historiques sur plusieurs tournois.
 
-Sur le proxy xG : je n'appelle plus ca xG dans l'app exactement parce que ce n'est pas
-le vrai Expected Goals. C'est un indicateur proportionnel simplifie : tirs cadres fois
-le taux de conversion moyen du tournoi. Utile pour comparer les equipes entre elles,
-pas pour predire un match.
+Sur le proxy xG : je n'appelle plus ça xG dans l'app exactement parce que ce n'est pas
+le vrai Expected Goals. C'est un indicateur proportionnel simplifié : tirs cadrés fois
+le taux de conversion moyen du tournoi. Utile pour comparer les équipes entre elles,
+pas pour prédire un match.
         """)
 
-    with st.expander("Aux data analysts et developpeurs"):
+    with st.expander("Aux data analysts et développeurs"):
         st.markdown("""
-Le pipeline de donnees utilise du scraping respectueux (robots.txt verifie, user-agent
+Le pipeline de données utilise du scraping respectueux (robots.txt vérifié, user-agent
 identifiable, cache TTL pour ne pas sur-solliciter le site). Source : The Stats Zone,
 pages publiques FIFA World Cup 2026.
 
-L'app se met a jour automatiquement (TTL 20 minutes sur Streamlit Cloud). Le CSV est
-versionne sur GitHub. Chaque match terminé est cache 30 jours pour eviter les appels
-repetitifs une fois les stats stabilisees.
+L'app se met à jour automatiquement (TTL 20 minutes sur Streamlit Cloud). Le CSV est
+versionné sur GitHub. Chaque match terminé est caché 30 jours pour éviter les appels
+répétitifs une fois les stats stabilisées.
 
-Le code est open source. Si tu vois quelque chose a ameliorer, je suis preneur.
+Le code est open source. Si tu vois quelque chose à améliorer, je suis preneur.
         """)
 
-    with st.expander("Aux passionnes de football"):
+    with st.expander("Aux passionnés de football"):
         st.markdown("""
 Les stats ne capturent pas tout. Pas les blessures en cours de tournoi, pas la
-motivation d'une equipe qui joue pour son pays pour la premiere fois en finale,
-pas le vent au stade de Dallas au moment d'un penalty decisif.
+motivation d'une équipe qui joue pour son pays pour la première fois en finale,
+pas le vent au stade de Dallas au moment d'un penalty décisif.
 
-Ce que les chiffres de ce projet ne voient pas : les coups de pied arretes, les
+Ce que les chiffres de ce projet ne voient pas : les coups de pied arrêtés, les
 changements tactiques mi-match, la fatigue cumulative, la dimension psychologique
-d'une eliminatoire a tir au but.
+d'une éliminatoire à tir au but.
 
-Le modele dit que Spain gagne a X %. Ca veut dire que ses statistiques de tournoi
-sont plus proches du profil gagnant historique. Ca ne dit pas qui va marquer le but
-decisif ce soir.
+Le modèle donnait Spain favorite : ses statistiques de tournoi étaient les plus
+proches du profil gagnant historique. Ça ne disait pas qui marquerait le but
+décisif. Elle l'a fait, à la 106e minute.
         """)
 
     with st.expander("Pourquoi ce projet"):
         st.markdown("""
 J'ai construit ce projet pendant le tournoi, en direct, pour plusieurs raisons.
 
-D'abord la curiosite : est-ce que les stats de match sont vraiment predictives ?
-La reponse, autour de 63 %, m'a surpris dans les deux sens. C'est suffisant pour que
-ca vaille la peine d'y regarder, pas assez pour predire avec certitude.
+D'abord la curiosité : est-ce que les stats de match sont vraiment prédictives ?
+La réponse, autour de 64 %, m'a surpris dans les deux sens. C'est suffisant pour que
+ça vaille la peine d'y regarder, pas assez pour prédire avec certitude.
 
-Ensuite, c'est un terrain d'experimentation pratique. Scraping live, pipeline ETL
-avec TTL, modele simple mais honnetement evalue, clustering interprete. Tout ca sur
-des vraies donnees qui changent chaque jour.
+Ensuite, c'est un terrain d'expérimentation pratique. Scraping live, pipeline ETL
+avec TTL, modèle simple mais honnêtement évalué, clustering interprété. Tout ça sur
+des vraies données qui changent chaque jour.
 
-Enfin, le Mondial 2026 avec 48 equipes et un round supplementaire, c'est une
-edition qui n'a pas de precedent direct. Les profils de jeu sont plus varies,
-les upsets plus nombreux. Un beau terrain de jeu pour la donnee.
+Enfin, le Mondial 2026 avec 48 équipes et un tour supplémentaire, c'est une
+édition qui n'a pas de précédent direct. Les profils de jeu sont plus variés,
+les upsets plus nombreux. Un beau terrain de jeu pour la donnée.
 
 Stack : Python, Streamlit, Plotly, scikit-learn, scraping Requests.
-Donnees : The Stats Zone (pages publiques FIFA World Cup 2026).
-Duree : environ 3 semaines de travail en paralelle du tournoi.
+Données : The Stats Zone (pages publiques FIFA World Cup 2026).
+Durée : environ 3 semaines de travail en parallèle du tournoi.
         """)
 
     st.divider()
     st.markdown(
-        "**Badreddine EL KHAMLICHI** — Ingenieur mathematiques appliquees, Lyon. "
+        "**Badreddine EL KHAMLICHI** — Ingénieur mathématiques appliquées, Lyon. "
         "[badreddineek.com](https://badreddineek.com)"
     )
     st.caption(
-        "Les donnees de ce projet sont extraites de sources publiques. "
+        "Les données de ce projet sont extraites de sources publiques. "
         "Le code est open source sous licence MIT. "
         "[GitHub](https://github.com/BadreddineEK/worldcup-2026-stats-vs-winner)"
     )
